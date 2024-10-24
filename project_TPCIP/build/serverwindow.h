@@ -9,6 +9,7 @@
 #include <QPushButton>
 #include <QFont>
 #include <QLineEdit>
+#include <QBuffer>
 
 class ServerWindow : public QWidget {
     Q_OBJECT
@@ -22,6 +23,7 @@ private slots:
     void readMessage();//Read messages from the client
     void sendMessageToClient();//Send message to client
     void clientDisconnected();//Clear after disconected client
+    void sendImageToClient();//Send image to client
 
 private:
     QTcpServer *tcpServer;//Pointer to the TCP server instance
@@ -31,5 +33,6 @@ private:
     QLineEdit *messageInput;//Input for messages to client
     QPushButton *sendButton;//Button to send message to client
     QList<QTcpSocket*> connectedSockets;//All clients conected to server
+    QPushButton *sendImageButton;//Button to send image from server to client
 };
 #endif // SERVERWINDOW_H

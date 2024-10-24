@@ -8,6 +8,7 @@
 #include <QLabel>
 #include <QFont>
 #include <QTextEdit>
+#include <QBuffer>
 
 class ClientWindow : public QWidget {
     Q_OBJECT
@@ -19,6 +20,7 @@ private slots:
     void sendMessage();
     void readMessage();
     void onConnected();
+    void sendImageToServer();
 
 private:
     QTcpSocket *socket;//Socket to connect to the server
@@ -28,5 +30,6 @@ private:
     QPushButton *sendButton;//Button to send messages
     QPushButton *connectButton;//Button to connect to server
     QTextEdit *messageLog;//Input for text send from server
+    QPushButton *sendImageButton;//Button to sent image from client to server
 };
 #endif // CLIENTWINDOW_H

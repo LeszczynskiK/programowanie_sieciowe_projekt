@@ -47,6 +47,11 @@ ClientWindow::ClientWindow(QWidget *parent) : QWidget(parent) {
     messageLog->setReadOnly(true);
     messageLog->setGeometry(10, 150, 540, 540);
     messageLog->setFont(font);
+
+    //Image send button
+    sendImageButton = new QPushButton("Send Image to Server", this);
+    sendImageButton->setGeometry(10, 720, 200, 50);
+    connect(sendImageButton, &QPushButton::clicked, this, &ClientWindow::sendImageToServer);
 }
 
 void ClientWindow::connectToServer() {
@@ -74,8 +79,28 @@ void ClientWindow::onConnected() {
 
 void ClientWindow::readMessage() {
     QByteArray data = socket->readAll();
-    QString serverMessage = QString::fromUtf8(data);
-
-    messageLog->setTextColor(Qt::red);//Message from server is red
-    messageLog->append("Server: " + serverMessage);//Only message from server
+    QImage image;
+    if (image.loadFromData(data)) { //If data is image
+        QLabel *imageLabel = new QLabel(this);//Display image
+        imageLabel->setPixmap(QPixmap::fromImage(image));
+        imageLabel->setGeometry(10, 150, 100, 100);
+        imageLabel->show();
+    } else {
+        QString serverMessage = QString::fromUtf8(data);//If data is txt
+        messageLog->setTextColor(Qt::red);//Message from server is red
+        messageLog->append("Server: " + serverMessage);//Only message from server
+    }
 }
+
+    void ClientWindow::sendImageToServer() {
+    QImage image("/home/krzysiek89/Desktop/QT_aplikacje/Programowanie_sieciowe/photo1.jpeg"); // Podaj ścieżkę do swojego obrazka
+    QByteArray byteArray;
+    QBuffer buffer(&byteArray);
+    buffer.open(QIODevice::WriteOnly);
+    image.save(&buffer, "JPEG");
+
+    socket->write(byteArray);
+    socket->flush();
+}
+
+

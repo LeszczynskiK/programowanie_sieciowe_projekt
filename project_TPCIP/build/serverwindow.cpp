@@ -36,6 +36,10 @@ ServerWindow::ServerWindow(QWidget *parent) : QWidget(parent) {
     sendButton->setGeometry(420, 680, 150, 50);
     sendButton->setFont(font);
     connect(sendButton, &QPushButton::clicked, this, &ServerWindow::sendMessageToClient);
+
+    sendImageButton = new QPushButton("Send Image to Client", this);
+    sendImageButton->setGeometry(180, 760, 150, 50);;
+    connect(sendImageButton, &QPushButton::clicked, this, &ServerWindow::sendImageToClient);
 }
 
 //Start button click
@@ -87,3 +91,19 @@ void ServerWindow::clientDisconnected() {
     socket->deleteLater();//Delete socket
     messageLog->append("Client disconnected.");
 }
+
+void ServerWindow::sendImageToClient() {//Graphics send to client
+    QImage image("/home/krzysiek89/Desktop/QT_aplikacje/Programowanie_sieciowe/photo1.jpeg");//annotation do photo
+    QByteArray byteArray;
+    QBuffer buffer(&byteArray);
+    buffer.open(QIODevice::WriteOnly);
+    image.save(&buffer, "JPEG");// ... /type of graphics
+
+    //Send graphics to client
+    QTcpSocket *socket = tcpServer->nextPendingConnection();//Download active client
+    if (socket) {
+        socket->write(byteArray);
+        socket->flush();
+    }
+}
+\
