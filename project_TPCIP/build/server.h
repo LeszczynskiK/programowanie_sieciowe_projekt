@@ -6,21 +6,16 @@
 #include <QObject>
 #include <QDebug>
 
-class Server : public QObject
-{
+class Server : public QObject{
     Q_OBJECT
-
 public:
     Server(QObject *parent = nullptr);
     void sendMessage(const QString &message);
-
-private slots:
-    void newConnection();
-    void readMessage();
-
-private:
     QTcpServer *server;
     QTcpSocket *socket;
+public slots:
+    void newConnection();
+    void readMessage();
 };
 
 #endif // SERVER_H
