@@ -7,8 +7,8 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
    //Server
-    //ServerWindow serverWindow;
-    //serverWindow.show();
+    ServerWindow serverWindow;
+    serverWindow.show();
 
     //Client
     ClientWindow clientWindow;

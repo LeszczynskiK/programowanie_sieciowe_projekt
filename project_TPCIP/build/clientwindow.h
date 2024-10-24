@@ -6,6 +6,8 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QLabel>
+#include <QFont>
+#include <QTextEdit>
 
 class ClientWindow : public QWidget {
     Q_OBJECT
@@ -25,5 +27,6 @@ private:
     QLineEdit *messageInput;//Input for messages
     QPushButton *sendButton;//Button to send messages
     QPushButton *connectButton;//Button to connect to server
+    QTextEdit *messageLog;//Input for text send from server
 };
 #endif // CLIENTWINDOW_H
