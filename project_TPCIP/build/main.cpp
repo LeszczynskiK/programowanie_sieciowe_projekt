@@ -1,15 +1,18 @@
-#include <QCoreApplication>
-#include "client.h"
-#include "server.h"
+#include <QApplication>
+#include "clientwindow.h"
+#include "serverwindow.h"
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
+    QApplication app(argc, argv);
 
-    Server server;//Create server
-    Client client;//Create client
+   //Server
+    //ServerWindow serverWindow;
+    //serverWindow.show();
 
-    client.connectToServer("127.0.0.1");// Connect to the server running on ip
+    //Client
+    ClientWindow clientWindow;
+    clientWindow.show();
 
-    return a.exec();
+    return app.exec();
 }
