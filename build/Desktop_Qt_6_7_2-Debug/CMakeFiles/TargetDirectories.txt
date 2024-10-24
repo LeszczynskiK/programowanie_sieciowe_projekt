@@ -1,0 +1,9 @@
+/home/krzysiek89/Desktop/QT_aplikacje/Programowanie_sieciowe/main/build/Desktop_Qt_6_7_2-Debug/CMakeFiles/main.dir
+/home/krzysiek89/Desktop/QT_aplikacje/Programowanie_sieciowe/main/build/Desktop_Qt_6_7_2-Debug/CMakeFiles/edit_cache.dir
+/home/krzysiek89/Desktop/QT_aplikacje/Programowanie_sieciowe/main/build/Desktop_Qt_6_7_2-Debug/CMakeFiles/rebuild_cache.dir
+/home/krzysiek89/Desktop/QT_aplikacje/Programowanie_sieciowe/main/build/Desktop_Qt_6_7_2-Debug/CMakeFiles/list_install_components.dir
+/home/krzysiek89/Desktop/QT_aplikacje/Programowanie_sieciowe/main/build/Desktop_Qt_6_7_2-Debug/CMakeFiles/install.dir
+/home/krzysiek89/Desktop/QT_aplikacje/Programowanie_sieciowe/main/build/Desktop_Qt_6_7_2-Debug/CMakeFiles/install/local.dir
+/home/krzysiek89/Desktop/QT_aplikacje/Programowanie_sieciowe/main/build/Desktop_Qt_6_7_2-Debug/CMakeFiles/install/strip.dir
+/home/krzysiek89/Desktop/QT_aplikacje/Programowanie_sieciowe/main/build/Desktop_Qt_6_7_2-Debug/CMakeFiles/main_autogen_timestamp_deps.dir
+/home/krzysiek89/Desktop/QT_aplikacje/Programowanie_sieciowe/main/build/Desktop_Qt_6_7_2-Debug/CMakeFiles/main_autogen.dir
