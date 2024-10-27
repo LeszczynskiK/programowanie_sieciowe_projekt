@@ -57,7 +57,7 @@ ClientWindow::ClientWindow(QWidget *parent) : QWidget(parent) {
 void ClientWindow::connectToServer() {
     QString ipAddress = ipInput->text();//Get the IP address from the input field
     if (!ipAddress.isEmpty()) {
-        socket->connectToHost(ipAddress, 12351);//Attempt to connect to the server
+        socket->connectToHost(ipAddress, 12352);//Attempt to connect to the server
     } else {
         statusLabel->setText("Please enter a valid IP address.");
     }
@@ -66,11 +66,13 @@ void ClientWindow::connectToServer() {
 void ClientWindow::sendMessage() {
     QString message = messageInput->text();
     if (!message.isEmpty()) {
+        qDebug() << "Sending message:" << message; // Logowanie wiadomości
         socket->write(message.toUtf8());
         socket->flush();
-        messageInput->clear();//Clear the input after sending
+        messageInput->clear(); // Wyczyść pole po wysłaniu
     }
 }
+
 
 void ClientWindow::onConnected() {
     statusLabel->setText("Connected to server");
@@ -80,35 +82,40 @@ void ClientWindow::onConnected() {
 void ClientWindow::readMessage() {
     QByteArray data = socket->readAll();
     QImage image;
-    if (image.loadFromData(data)) { // Jeśli dane to obraz
-        // Skalowanie obrazu do 160x160
+    if (image.loadFromData(data)) { //If data is picture
+        //Scale image to 160 x 160
         QImage scaledImage = image.scaled(160, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-        // Wyświetlanie obrazu
+        //Display picture
         QLabel *imageLabel = new QLabel(this);
         imageLabel->setPixmap(QPixmap::fromImage(scaledImage));
         imageLabel->setGeometry(10, 150, 160, 160); // Zmiana rozmiaru QLabel na 160x160
         imageLabel->show();
     } else {
-        QString serverMessage = QString::fromUtf8(data); // Jeśli dane to tekst
-        messageLog->setTextColor(Qt::red); // Wiadomość z serwera jest czerwona
-        messageLog->append("Server: " + serverMessage); // Tylko wiadomość z serwera
+        QString serverMessage = QString::fromUtf8(data);//if data is txt type
+        messageLog->setTextColor(Qt::red);//message from server is red
+        messageLog->append("Server: " + serverMessage);//Only message from server
     }
 }
 
 void ClientWindow::sendImageToServer() {
-    // Otwórz dialog do wyboru pliku
+
+    //Dialog to choose image file
     QString fileName = QFileDialog::getOpenFileName(this, "Select Image", "", "Images (*.png *.jpg *.jpeg *.bmp *.gif)");
     if (fileName.isEmpty()) {
-        return; // Jeśli użytkownik nie wybrał pliku, zakończ
+        return;//Finish if not taken
     }
-
-    QImage image(fileName); // Użyj wybranego pliku
+    QImage image(fileName);//Use choosen file
     QByteArray byteArray;
     QBuffer buffer(&byteArray);
     buffer.open(QIODevice::WriteOnly);
-    image.save(&buffer, "JPEG");
+    image.save(&buffer, "JPEG");//Save as jpeg
 
-    socket->write(byteArray);
-    socket->flush();
+    //Send image to all connected sockets
+    for (QTcpSocket *socket : connectedSockets) {
+        if (socket->state() == QAbstractSocket::ConnectedState) {
+            socket->write(byteArray);//Send
+            socket->flush();//Push
+        }
+    }
 }

@@ -44,7 +44,7 @@ ServerWindow::ServerWindow(QWidget *parent) : QWidget(parent) {
 
 //Start button click
 void ServerWindow::onStartButtonClicked() {
-    if (tcpServer->listen(QHostAddress::Any, 12351)) {
+    if (tcpServer->listen(QHostAddress::Any, 12352)) {
         statusLabel->setText("Server is listening...");
         connect(tcpServer, &QTcpServer::newConnection, this, &ServerWindow::newConnection);
     } else {
@@ -64,12 +64,28 @@ void ServerWindow::newConnection() {
 
 //Read message from client
 void ServerWindow::readMessage() {
-    QTcpSocket *socket = qobject_cast<QTcpSocket*>(sender());
-    if (socket) {
-        QByteArray data = socket->readAll(); // Read data from the socket
-        messageLog->append("Received message: " + data); // Log received message
+    QTcpSocket *socket = qobject_cast<QTcpSocket*>(sender()); // Get the socket that sent the signal
+    if (!socket) {
+        return; // If the socket is null, exit the function
+    }
+
+    QByteArray data = socket->readAll(); // Read all data from the socket
+    QImage image;
+    if (image.loadFromData(data)) { // If data is an image
+        // Scale image to 160 x 160
+        QImage scaledImage = image.scaled(160, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        // Display picture
+        QLabel *imageLabel = new QLabel(this);
+        imageLabel->setPixmap(QPixmap::fromImage(scaledImage));
+        imageLabel->setGeometry(10, 150, 160, 160); // Set label size to 160x160
+        imageLabel->show();
+    } else {
+        QString serverMessage = QString::fromUtf8(data); // If data is text
+        messageLog->setTextColor(Qt::red); // Set message color to red
+        messageLog->append("Server: " + serverMessage); // Log the server message
     }
 }
+
 
 void ServerWindow::sendMessageToClient() {
     QString message = messageInput->text();
@@ -93,25 +109,25 @@ void ServerWindow::clientDisconnected() {
 }
 
 void ServerWindow::sendImageToClient() {
-    // Otwórz dialog do wyboru pliku
+    //Dialog to choose image file
     QString fileName = QFileDialog::getOpenFileName(this, "Select Image", "", "Images (*.png *.jpg *.jpeg *.bmp *.gif)");
     if (fileName.isEmpty()) {
-        return; // Jeśli użytkownik nie wybrał pliku, zakończ
+        return;//Finish if not taken
     }
-
-    QImage image(fileName); // Użyj wybranego pliku
+    QImage image(fileName);//Use choosen file
     QByteArray byteArray;
     QBuffer buffer(&byteArray);
     buffer.open(QIODevice::WriteOnly);
-    image.save(&buffer, "JPEG"); // Zapisz obraz w formacie JPEG
+    image.save(&buffer, "JPEG");//Save as jpeg
 
-    // Wysyłaj obraz do wszystkich podłączonych gniazd
+    //Send image to all connected sockets
     for (QTcpSocket *socket : connectedSockets) {
         if (socket->state() == QAbstractSocket::ConnectedState) {
-            socket->write(byteArray); // Wyślij dane
-            socket->flush(); // Wypchnij dane
+            socket->write(byteArray);//Send
+            socket->flush();//Push
         }
     }
+
 }
 
-\
+

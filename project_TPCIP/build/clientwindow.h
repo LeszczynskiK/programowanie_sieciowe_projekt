@@ -32,5 +32,6 @@ private:
     QPushButton *connectButton;//Button to connect to server
     QTextEdit *messageLog;//Input for text send from server
     QPushButton *sendImageButton;//Button to sent image from client to server
+    QList<QTcpSocket*> connectedSockets;//All clients conected to server
 };
 #endif // CLIENTWINDOW_H
