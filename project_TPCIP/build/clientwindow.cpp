@@ -52,6 +52,14 @@ ClientWindow::ClientWindow(QWidget *parent) : QWidget(parent) {
     sendImageButton = new QPushButton("Send Image to Server", this);
     sendImageButton->setGeometry(10, 720, 200, 50);
     connect(sendImageButton, &QPushButton::clicked, this, &ClientWindow::sendImageToServer);
+
+    // Initialize delete button
+    QPushButton *deleteButton = new QPushButton("Clear Chat", this);
+    deleteButton->setFont(font);
+    deleteButton->setGeometry(250, 720, 120, 50); // Geometry for the delete button
+
+    // Connect the delete button signal to the corresponding slot
+    connect(deleteButton, &QPushButton::clicked, this, &ClientWindow::clearChat);
 }
 
 void ClientWindow::connectToServer() {
@@ -66,10 +74,10 @@ void ClientWindow::connectToServer() {
 void ClientWindow::sendMessage() {
     QString message = messageInput->text();
     if (!message.isEmpty()) {
-        qDebug() << "Sending message:" << message; // Logowanie wiadomości
+        qDebug() << "Sending message:" << message;//Log messages
         socket->write(message.toUtf8());
         socket->flush();
-        messageInput->clear(); // Wyczyść pole po wysłaniu
+        messageInput->clear();//Clear field after sent
     }
 }
 
@@ -89,7 +97,7 @@ void ClientWindow::readMessage() {
         //Display picture
         QLabel *imageLabel = new QLabel(this);
         imageLabel->setPixmap(QPixmap::fromImage(scaledImage));
-        imageLabel->setGeometry(410, 150, 160, 160); // Zmiana rozmiaru QLabel na 160x160
+        imageLabel->setGeometry(350, 150, 160, 160);//Scale and set pos
         imageLabel->show();
     } else {
         QString serverMessage = QString::fromUtf8(data);//if data is txt type
@@ -99,7 +107,7 @@ void ClientWindow::readMessage() {
 }
 
 void ClientWindow::sendImageToServer() {
-    // Dialog to choose image file
+    //Dialog to choose image file
     QString fileName = QFileDialog::getOpenFileName(this, "Select Image", "", "Images (*.png *.jpg *.jpeg *.bmp *.gif)");
     if (fileName.isEmpty()) {
         return; // Finish if not taken
@@ -116,5 +124,9 @@ void ClientWindow::sendImageToServer() {
         socket->flush(); // Push the data
         messageLog->append("Image sent to server."); // Log that the image was sent
     }
+}
+
+void ClientWindow::clearChat() {
+    messageLog->clear(); // Clear the message log
 }
 

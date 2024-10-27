@@ -22,6 +22,7 @@ private slots:
     void readMessage();
     void onConnected();
     void sendImageToServer();
+    void clearChat();//Slot for clearing the chat
 
 private:
     QTcpSocket *socket;//Socket to connect to the server
@@ -33,5 +34,6 @@ private:
     QTextEdit *messageLog;//Input for text send from server
     QPushButton *sendImageButton;//Button to sent image from client to server
     QList<QTcpSocket*> connectedSockets;//All clients conected to server
+    QPushButton *deleteButton;//Clear chat
 };
 #endif // CLIENTWINDOW_H

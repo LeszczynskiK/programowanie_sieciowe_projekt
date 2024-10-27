@@ -40,6 +40,14 @@ ServerWindow::ServerWindow(QWidget *parent) : QWidget(parent) {
     sendImageButton = new QPushButton("Send Image to Client", this);
     sendImageButton->setGeometry(180, 760, 150, 50);;
     connect(sendImageButton, &QPushButton::clicked, this, &ServerWindow::sendImageToClient);
+
+    // Initialize delete button
+    QPushButton *deleteButton = new QPushButton("Clear Chat", this);
+    deleteButton->setFont(font);
+    deleteButton->setGeometry(360, 760, 120, 50); // Geometry for the delete button
+
+    // Connect the delete button signal to the corresponding slot
+    connect(deleteButton, &QPushButton::clicked, this, &ServerWindow::clearChat);
 }
 
 //Start button click
@@ -77,7 +85,7 @@ void ServerWindow::readMessage() {
         // Display picture
         QLabel *imageLabel = new QLabel(this);
         imageLabel->setPixmap(QPixmap::fromImage(scaledImage));
-        imageLabel->setGeometry(520, 120, 160, 160); // Set label size to 160x160
+        imageLabel->setGeometry(360, 120, 160, 160); // Set label size to 160x160
         imageLabel->show();
         messageLog->append("Received an image from client."); // Log that an image was received
     } else {
@@ -129,7 +137,12 @@ void ServerWindow::sendImageToClient() {
             socket->flush();//Push
         }
     }
+}
 
+void ServerWindow::clearChat() {
+    messageLog->clear(); //Clear the message log
+    QList<QLabel *> labels = findChildren<QLabel *>();
+    qDeleteAll(labels);
 }
 
 
