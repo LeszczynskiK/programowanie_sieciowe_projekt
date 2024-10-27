@@ -103,9 +103,15 @@ void ServerWindow::sendImageToClient() {
     QByteArray byteArray;
     QBuffer buffer(&byteArray);
     buffer.open(QIODevice::WriteOnly);
-    image.save(&buffer, "JPEG");
+    image.save(&buffer, "JPEG"); // Zapisz obraz w formacie JPEG
 
-    socket->write(byteArray);
-    socket->flush();
+    // Wysyłaj obraz do wszystkich podłączonych gniazd
+    for (QTcpSocket *socket : connectedSockets) {
+        if (socket->state() == QAbstractSocket::ConnectedState) {
+            socket->write(byteArray); // Wyślij dane
+            socket->flush(); // Wypchnij dane
+        }
+    }
 }
+
 \

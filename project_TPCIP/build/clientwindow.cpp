@@ -80,15 +80,19 @@ void ClientWindow::onConnected() {
 void ClientWindow::readMessage() {
     QByteArray data = socket->readAll();
     QImage image;
-    if (image.loadFromData(data)) { //If data is image
-        QLabel *imageLabel = new QLabel(this);//Display image
-        imageLabel->setPixmap(QPixmap::fromImage(image));
-        imageLabel->setGeometry(10, 150, 100, 100);
+    if (image.loadFromData(data)) { // Jeśli dane to obraz
+        // Skalowanie obrazu do 160x160
+        QImage scaledImage = image.scaled(160, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+        // Wyświetlanie obrazu
+        QLabel *imageLabel = new QLabel(this);
+        imageLabel->setPixmap(QPixmap::fromImage(scaledImage));
+        imageLabel->setGeometry(10, 150, 160, 160); // Zmiana rozmiaru QLabel na 160x160
         imageLabel->show();
     } else {
-        QString serverMessage = QString::fromUtf8(data);//If data is txt
-        messageLog->setTextColor(Qt::red);//Message from server is red
-        messageLog->append("Server: " + serverMessage);//Only message from server
+        QString serverMessage = QString::fromUtf8(data); // Jeśli dane to tekst
+        messageLog->setTextColor(Qt::red); // Wiadomość z serwera jest czerwona
+        messageLog->append("Server: " + serverMessage); // Tylko wiadomość z serwera
     }
 }
 
@@ -108,4 +112,3 @@ void ClientWindow::sendImageToServer() {
     socket->write(byteArray);
     socket->flush();
 }
-
