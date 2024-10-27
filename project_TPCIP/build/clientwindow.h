@@ -9,6 +9,7 @@
 #include <QFont>
 #include <QTextEdit>
 #include <QBuffer>
+#include <QFileDialog>
 
 class ClientWindow : public QWidget {
     Q_OBJECT

@@ -44,7 +44,7 @@ ServerWindow::ServerWindow(QWidget *parent) : QWidget(parent) {
 
 //Start button click
 void ServerWindow::onStartButtonClicked() {
-    if (tcpServer->listen(QHostAddress::Any, 12349)) {
+    if (tcpServer->listen(QHostAddress::Any, 12351)) {
         statusLabel->setText("Server is listening...");
         connect(tcpServer, &QTcpServer::newConnection, this, &ServerWindow::newConnection);
     } else {
@@ -92,18 +92,20 @@ void ServerWindow::clientDisconnected() {
     messageLog->append("Client disconnected.");
 }
 
-void ServerWindow::sendImageToClient() {//Graphics send to client
-    QImage image("/home/krzysiek89/Desktop/QT_aplikacje/Programowanie_sieciowe/photo1.jpeg");//annotation do photo
+void ServerWindow::sendImageToClient() {
+    // Otwórz dialog do wyboru pliku
+    QString fileName = QFileDialog::getOpenFileName(this, "Select Image", "", "Images (*.png *.jpg *.jpeg *.bmp *.gif)");
+    if (fileName.isEmpty()) {
+        return; // Jeśli użytkownik nie wybrał pliku, zakończ
+    }
+
+    QImage image(fileName); // Użyj wybranego pliku
     QByteArray byteArray;
     QBuffer buffer(&byteArray);
     buffer.open(QIODevice::WriteOnly);
-    image.save(&buffer, "JPEG");// ... /type of graphics
+    image.save(&buffer, "JPEG");
 
-    //Send graphics to client
-    QTcpSocket *socket = tcpServer->nextPendingConnection();//Download active client
-    if (socket) {
-        socket->write(byteArray);
-        socket->flush();
-    }
+    socket->write(byteArray);
+    socket->flush();
 }
 \

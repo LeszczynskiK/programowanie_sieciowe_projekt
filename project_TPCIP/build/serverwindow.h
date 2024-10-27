@@ -1,3 +1,4 @@
+
 #ifndef SERVERWINDOW_H
 #define SERVERWINDOW_H
 
@@ -10,6 +11,7 @@
 #include <QFont>
 #include <QLineEdit>
 #include <QBuffer>
+#include <QFileDialog>
 
 class ServerWindow : public QWidget {
     Q_OBJECT
@@ -26,6 +28,7 @@ private slots:
     void sendImageToClient();//Send image to client
 
 private:
+    QTcpSocket *socket;//Socket to connect to the server
     QTcpServer *tcpServer;//Pointer to the TCP server instance
     QLabel *statusLabel;//Label to display server status
     QTextEdit *messageLog;//Text area to display received messages

@@ -57,7 +57,7 @@ ClientWindow::ClientWindow(QWidget *parent) : QWidget(parent) {
 void ClientWindow::connectToServer() {
     QString ipAddress = ipInput->text();//Get the IP address from the input field
     if (!ipAddress.isEmpty()) {
-        socket->connectToHost(ipAddress, 12349);//Attempt to connect to the server
+        socket->connectToHost(ipAddress, 12351);//Attempt to connect to the server
     } else {
         statusLabel->setText("Please enter a valid IP address.");
     }
@@ -92,8 +92,14 @@ void ClientWindow::readMessage() {
     }
 }
 
-    void ClientWindow::sendImageToServer() {
-    QImage image("/home/krzysiek89/Desktop/QT_aplikacje/Programowanie_sieciowe/photo1.jpeg"); // Podaj ścieżkę do swojego obrazka
+void ClientWindow::sendImageToServer() {
+    // Otwórz dialog do wyboru pliku
+    QString fileName = QFileDialog::getOpenFileName(this, "Select Image", "", "Images (*.png *.jpg *.jpeg *.bmp *.gif)");
+    if (fileName.isEmpty()) {
+        return; // Jeśli użytkownik nie wybrał pliku, zakończ
+    }
+
+    QImage image(fileName); // Użyj wybranego pliku
     QByteArray byteArray;
     QBuffer buffer(&byteArray);
     buffer.open(QIODevice::WriteOnly);
@@ -102,5 +108,4 @@ void ClientWindow::readMessage() {
     socket->write(byteArray);
     socket->flush();
 }
-
 
