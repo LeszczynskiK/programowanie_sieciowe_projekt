@@ -44,7 +44,7 @@ ServerWindow::ServerWindow(QWidget *parent) : QWidget(parent) {
 
 //Start button click
 void ServerWindow::onStartButtonClicked() {
-    if (tcpServer->listen(QHostAddress::Any, 12352)) {
+    if (tcpServer->listen(QHostAddress::Any, 12353)) {
         statusLabel->setText("Server is listening...");
         connect(tcpServer, &QTcpServer::newConnection, this, &ServerWindow::newConnection);
     } else {
@@ -61,8 +61,7 @@ void ServerWindow::newConnection() {
     connect(socket, &QTcpSocket::disconnected, this, &ServerWindow::clientDisconnected);//Delete cliend after disconecting(client)
     messageLog->append("Client connected.");
 }
-
-//Read message from client
+// Read message from client
 void ServerWindow::readMessage() {
     QTcpSocket *socket = qobject_cast<QTcpSocket*>(sender()); // Get the socket that sent the signal
     if (!socket) {
@@ -71,20 +70,23 @@ void ServerWindow::readMessage() {
 
     QByteArray data = socket->readAll(); // Read all data from the socket
     QImage image;
+
     if (image.loadFromData(data)) { // If data is an image
         // Scale image to 160 x 160
         QImage scaledImage = image.scaled(160, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         // Display picture
         QLabel *imageLabel = new QLabel(this);
         imageLabel->setPixmap(QPixmap::fromImage(scaledImage));
-        imageLabel->setGeometry(10, 150, 160, 160); // Set label size to 160x160
+        imageLabel->setGeometry(520, 120, 160, 160); // Set label size to 160x160
         imageLabel->show();
+        messageLog->append("Received an image from client."); // Log that an image was received
     } else {
         QString serverMessage = QString::fromUtf8(data); // If data is text
         messageLog->setTextColor(Qt::red); // Set message color to red
         messageLog->append("Server: " + serverMessage); // Log the server message
     }
 }
+
 
 
 void ServerWindow::sendMessageToClient() {

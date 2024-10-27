@@ -57,7 +57,7 @@ ClientWindow::ClientWindow(QWidget *parent) : QWidget(parent) {
 void ClientWindow::connectToServer() {
     QString ipAddress = ipInput->text();//Get the IP address from the input field
     if (!ipAddress.isEmpty()) {
-        socket->connectToHost(ipAddress, 12352);//Attempt to connect to the server
+        socket->connectToHost(ipAddress, 12353);//Attempt to connect to the server
     } else {
         statusLabel->setText("Please enter a valid IP address.");
     }
@@ -89,7 +89,7 @@ void ClientWindow::readMessage() {
         //Display picture
         QLabel *imageLabel = new QLabel(this);
         imageLabel->setPixmap(QPixmap::fromImage(scaledImage));
-        imageLabel->setGeometry(10, 150, 160, 160); // Zmiana rozmiaru QLabel na 160x160
+        imageLabel->setGeometry(410, 150, 160, 160); // Zmiana rozmiaru QLabel na 160x160
         imageLabel->show();
     } else {
         QString serverMessage = QString::fromUtf8(data);//if data is txt type
@@ -99,23 +99,22 @@ void ClientWindow::readMessage() {
 }
 
 void ClientWindow::sendImageToServer() {
-
-    //Dialog to choose image file
+    // Dialog to choose image file
     QString fileName = QFileDialog::getOpenFileName(this, "Select Image", "", "Images (*.png *.jpg *.jpeg *.bmp *.gif)");
     if (fileName.isEmpty()) {
-        return;//Finish if not taken
+        return; // Finish if not taken
     }
-    QImage image(fileName);//Use choosen file
+
+    QImage image(fileName); // Use chosen file
     QByteArray byteArray;
     QBuffer buffer(&byteArray);
     buffer.open(QIODevice::WriteOnly);
-    image.save(&buffer, "JPEG");//Save as jpeg
+    image.save(&buffer, "JPEG"); // Save as jpeg
 
-    //Send image to all connected sockets
-    for (QTcpSocket *socket : connectedSockets) {
-        if (socket->state() == QAbstractSocket::ConnectedState) {
-            socket->write(byteArray);//Send
-            socket->flush();//Push
-        }
+    if (socket->state() == QAbstractSocket::ConnectedState) { // Check if the socket is connected
+        socket->write(byteArray); // Send the image to the server
+        socket->flush(); // Push the data
+        messageLog->append("Image sent to server."); // Log that the image was sent
     }
 }
+
