@@ -12,6 +12,8 @@
 #include <QLineEdit>
 #include <QBuffer>
 #include <QFileDialog>
+#include <QPaintEvent>
+#include <QPainter>
 
 class ServerWindow : public QWidget {
     Q_OBJECT
@@ -29,6 +31,7 @@ private slots:
     void clearChat();//Clear chat
 
 private:
+    void paintEvent(QPaintEvent *event);//background setter
     QTcpSocket *socket;//Socket to connect to the server
     QTcpServer *tcpServer;//Pointer to the TCP server instance
     QLabel *statusLabel;//Label to display server status
@@ -39,5 +42,6 @@ private:
     QList<QTcpSocket*> connectedSockets;//All clients conected to server
     QPushButton *sendImageButton;//Button to send image from server to client
     QPushButton *deleteButton;//Clear chat button
+    QPixmap background;
 };
 #endif // SERVERWINDOW_H

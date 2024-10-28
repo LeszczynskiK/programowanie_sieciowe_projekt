@@ -1,23 +1,29 @@
 #include "serverwindow.h"
 
 ServerWindow::ServerWindow(QWidget *parent) : QWidget(parent) {
-    setFixedSize(860, 860);//Set window size
     setWindowTitle("Server Window");
+
+    const int x =860;
+    const int y=860;
+
+    setFixedSize(x, y);//Window size
+    background = QPixmap("/home/krzysiek89/Desktop/QT_aplikacje/Programowanie_sieciowe/project_TPCIP/bck.jpg").scaled(x, y);
 
     QList<QTcpSocket*> connectedSockets;//list of connected clients
 
     QFont font;
-    font.setPointSize(12);//Font size - beginning initialization
+    font.setPointSize(15);//Font size - beginning initialization
 
     //Server status label
     statusLabel = new QLabel("Server is not running", this);
+    statusLabel->setStyleSheet("color: yellow;");//Colour of the text
     statusLabel->setGeometry(10, 10, 600, 200);
     statusLabel->setFont(font);
 
     //Message log field
     messageLog = new QTextEdit(this);
     messageLog->setReadOnly(true);
-    messageLog->setGeometry(120, 120, 540, 540);
+    messageLog->setGeometry(10, 120, 540, 540);
     messageLog->setFont(font);
 
     //Start server button
@@ -48,6 +54,21 @@ ServerWindow::ServerWindow(QWidget *parent) : QWidget(parent) {
 
     // Connect the delete button signal to the corresponding slot
     connect(deleteButton, &QPushButton::clicked, this, &ServerWindow::clearChat);
+
+    //Add frame based on QLabel
+    QLabel *frame = new QLabel(this);
+    frame->setGeometry(600, 210, 180, 180);//Pos and size
+    frame->setStyleSheet("border: 2px solid grey;");//Style of frame
+
+    QLabel *frame1 = new QLabel(this);
+    frame1->setGeometry(600, 450, 180, 180);//Pos and size
+    frame1->setStyleSheet("border: 2px solid grey;");//Style of frame
+}
+
+void ServerWindow::paintEvent(QPaintEvent *event) {
+    QPainter painter(this);
+    painter.drawPixmap(0, 0, background);//background paint
+    QWidget::paintEvent(event);
 }
 
 //Start button click
@@ -80,17 +101,28 @@ void ServerWindow::readMessage() {
     QImage image;
 
     if (image.loadFromData(data)) { // If data is an image
+        if (image.loadFromData(data)) { //If data is an image
+            //Find all QLabels except added frames
+            QList<QLabel *> labels = findChildren<QLabel *>();
+            for (QLabel *label : labels) {
+                //Is frame?
+                if (label->geometry() != QRect(600, 210, 180, 180) &&
+                    label->geometry() != QRect(600, 450, 180, 180)) {
+                    delete label;//Delete all exept for frame
+                }
+            }
+        }
         // Scale image to 160 x 160
         QImage scaledImage = image.scaled(160, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         // Display picture
         QLabel *imageLabel = new QLabel(this);
         imageLabel->setPixmap(QPixmap::fromImage(scaledImage));
-        imageLabel->setGeometry(360, 120, 160, 160); // Set label size to 160x160
+        imageLabel->setGeometry(608, 218, 160, 160); // Set label size to 160x160
         imageLabel->show();
         messageLog->append("Received an image from client."); // Log that an image was received
     } else {
         QString serverMessage = QString::fromUtf8(data); // If data is text
-        messageLog->setTextColor(Qt::red); // Set message color to red
+        messageLog->setTextColor(Qt::white); // Set message color to white
         messageLog->append("Server: " + serverMessage); // Log the server message
     }
 }
@@ -140,9 +172,7 @@ void ServerWindow::sendImageToClient() {
 }
 
 void ServerWindow::clearChat() {
-    messageLog->clear(); //Clear the message log
-    QList<QLabel *> labels = findChildren<QLabel *>();
-    qDeleteAll(labels);
+    messageLog->clear();
 }
 
 

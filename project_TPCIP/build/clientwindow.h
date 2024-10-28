@@ -10,6 +10,8 @@
 #include <QTextEdit>
 #include <QBuffer>
 #include <QFileDialog>
+#include <QPainter>
+#include <QPaintEvent>
 
 class ClientWindow : public QWidget {
     Q_OBJECT
@@ -25,6 +27,7 @@ private slots:
     void clearChat();//Slot for clearing the chat
 
 private:
+    void paintEvent(QPaintEvent *event);//background setter
     QTcpSocket *socket;//Socket to connect to the server
     QLabel *statusLabel;//Label to show connection status
     QLineEdit *ipInput;//Input for IP address
@@ -35,5 +38,6 @@ private:
     QPushButton *sendImageButton;//Button to sent image from client to server
     QList<QTcpSocket*> connectedSockets;//All clients conected to server
     QPushButton *deleteButton;//Clear chat
+    QPixmap background;
 };
 #endif // CLIENTWINDOW_H

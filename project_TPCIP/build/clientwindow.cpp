@@ -1,12 +1,20 @@
 #include "clientwindow.h"
 
 
+
 ClientWindow::ClientWindow(QWidget *parent) : QWidget(parent) {
-    setFixedSize(860, 860);//Window size
+
     setWindowTitle("Client Window");
 
+    const int x =860;
+    const int y=860;
+
+    setFixedSize(x, y);//Window size
+    background = QPixmap("/home/krzysiek89/Desktop/QT_aplikacje/Programowanie_sieciowe/project_TPCIP/bck.jpg").scaled(x, y);
+
+
     QFont font;
-    font.setPointSize(12);//Font size - beginning initialization
+    font.setPointSize(15);//Font size - beginning initialization
 
     //Initialize IP address input
     ipInput = new QLineEdit(this);
@@ -17,6 +25,7 @@ ClientWindow::ClientWindow(QWidget *parent) : QWidget(parent) {
     //Initialize status label
     statusLabel = new QLabel("Disconnected", this);
     statusLabel->setFont(font);
+    statusLabel->setStyleSheet("color: yellow;");
     statusLabel->setGeometry(220, 10, 200, 50);
 
     //Initialize message input
@@ -25,11 +34,11 @@ ClientWindow::ClientWindow(QWidget *parent) : QWidget(parent) {
     messageInput->setGeometry(10, 90, 400, 50);
 
     //Initialize buttons
-    sendButton = new QPushButton("Send Message", this);
+    sendButton = new QPushButton("Send", this);
     sendButton->setFont(font);
     sendButton->setGeometry(420, 20, 120, 40);
 
-    connectButton = new QPushButton("Connect to Server", this);
+    connectButton = new QPushButton("Connect...", this);
     connectButton->setFont(font);
     connectButton->setGeometry(550, 20, 150, 40); //Add geometry for the connect button
 
@@ -53,13 +62,28 @@ ClientWindow::ClientWindow(QWidget *parent) : QWidget(parent) {
     sendImageButton->setGeometry(10, 720, 200, 50);
     connect(sendImageButton, &QPushButton::clicked, this, &ClientWindow::sendImageToServer);
 
-    // Initialize delete button
+    //Initialize delete button
     QPushButton *deleteButton = new QPushButton("Clear Chat", this);
     deleteButton->setFont(font);
     deleteButton->setGeometry(250, 720, 120, 50); // Geometry for the delete button
 
-    // Connect the delete button signal to the corresponding slot
+    //Connect the delete button signal to the corresponding slot
     connect(deleteButton, &QPushButton::clicked, this, &ClientWindow::clearChat);
+
+    //Add frame based on QLabel
+    QLabel *frame = new QLabel(this);
+    frame->setGeometry(600, 210, 180, 180);//Pos and size
+    frame->setStyleSheet("border: 2px solid grey;");//Style of frame
+
+    QLabel *frame1 = new QLabel(this);
+    frame1->setGeometry(600, 450, 180, 180);//Pos and size
+    frame1->setStyleSheet("border: 2px solid grey;");//Style of frame
+}
+
+void ClientWindow::paintEvent(QPaintEvent *event) {
+    QPainter painter(this);
+    painter.drawPixmap(0, 0, background);//Background
+    QWidget::paintEvent(event);
 }
 
 void ClientWindow::connectToServer() {
@@ -91,13 +115,25 @@ void ClientWindow::readMessage() {
     QByteArray data = socket->readAll();
     QImage image;
     if (image.loadFromData(data)) { //If data is picture
+        if (image.loadFromData(data)) { //If data is an image
+            //Find all QLabels except added frames
+            QList<QLabel *> labels = findChildren<QLabel *>();
+            for (QLabel *label : labels) {
+                //Is frame?
+                if (label->geometry() != QRect(600, 210, 180, 180) &&
+                    label->geometry() != QRect(600, 450, 180, 180)) {
+                    delete label;//Delete all exept for frame
+                }
+            }
+        }
+
         //Scale image to 160 x 160
         QImage scaledImage = image.scaled(160, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
         //Display picture
         QLabel *imageLabel = new QLabel(this);
         imageLabel->setPixmap(QPixmap::fromImage(scaledImage));
-        imageLabel->setGeometry(350, 150, 160, 160);//Scale and set pos
+        imageLabel->setGeometry(608, 218, 160, 160);//Scale and set pos
         imageLabel->show();
     } else {
         QString serverMessage = QString::fromUtf8(data);//if data is txt type
@@ -127,6 +163,5 @@ void ClientWindow::sendImageToServer() {
 }
 
 void ClientWindow::clearChat() {
-    messageLog->clear(); // Clear the message log
+   messageLog->clear();
 }
-
