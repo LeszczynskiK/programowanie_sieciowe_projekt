@@ -12,6 +12,7 @@
 #include <QFileDialog>
 #include <QPainter>
 #include <QPaintEvent>
+#include <QScreen>
 
 class ClientWindow : public QWidget {
     Q_OBJECT
