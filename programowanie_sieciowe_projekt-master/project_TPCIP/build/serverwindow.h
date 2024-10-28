@@ -43,5 +43,6 @@ private:
     QPushButton *sendImageButton;//Button to send image from server to client
     QPushButton *deleteButton;//Clear chat button
     QPixmap background;
+    QLabel *screenshotLabel;//Desktop
 };
 #endif // SERVERWINDOW_H

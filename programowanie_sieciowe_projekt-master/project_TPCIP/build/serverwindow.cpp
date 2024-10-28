@@ -92,40 +92,43 @@ void ServerWindow::newConnection() {
 }
 // Read message from client
 void ServerWindow::readMessage() {
-    QTcpSocket *socket = qobject_cast<QTcpSocket*>(sender()); // Get the socket that sent the signal
+    QTcpSocket *socket = qobject_cast<QTcpSocket*>(sender());
     if (!socket) {
-        return; // If the socket is null, exit the function
+        return;
     }
 
-    QByteArray data = socket->readAll(); // Read all data from the socket
+    QByteArray data = socket->readAll();
     QImage image;
 
-    if (image.loadFromData(data)) { // If data is an image
-        if (image.loadFromData(data)) { //If data is an image
-            //Find all QLabels except added frames
-            QList<QLabel *> labels = findChildren<QLabel *>();
-            for (QLabel *label : labels) {
-                //Is frame?
-                if (label->geometry() != QRect(600, 210, 180, 180) &&
-                    label->geometry() != QRect(600, 450, 180, 180)) {
-                    delete label;//Delete all exept for frame
-                }
-            }
-        }
-        // Scale image to 160 x 160
-        QImage scaledImage = image.scaled(160, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        // Display picture
+    //Data is image?
+    if (image.loadFromData(data)) {
+        //New qlabel to images
         QLabel *imageLabel = new QLabel(this);
-        imageLabel->setPixmap(QPixmap::fromImage(scaledImage));
-        imageLabel->setGeometry(608, 218, 160, 160); // Set label size to 160x160
+        imageLabel->setPixmap(QPixmap::fromImage(image.scaled(160, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
+
+        //Pos of classic image
+        imageLabel->setGeometry(608, 225, 160, 160);
         imageLabel->show();
-        messageLog->append("Received an image from client."); // Log that an image was received
+        messageLog->append("Received an image from client.");
+    } else if (data.startsWith("SCREENSHOT")) { //is it screenshot?
+        QByteArray screenshotData = data.mid(10);
+        QImage screenshotImage;
+        if (screenshotImage.loadFromData(screenshotData)) {
+           //new qlabel for ss
+            QLabel *screenshotLabel = new QLabel(this);
+            screenshotLabel->setPixmap(QPixmap::fromImage(screenshotImage.scaled(160, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
+            screenshotLabel->setGeometry(608, 450, 160, 160);
+            screenshotLabel->show();
+
+        }
     } else {
-        QString serverMessage = QString::fromUtf8(data); // If data is text
-        messageLog->setTextColor(Qt::white); // Set message color to white
-        messageLog->append("Server: " + serverMessage); // Log the server message
+        QString serverMessage = QString::fromUtf8(data);
+        messageLog->setTextColor(Qt::white);
+        messageLog->append("Server: " + serverMessage);
     }
 }
+
+
 
 
 

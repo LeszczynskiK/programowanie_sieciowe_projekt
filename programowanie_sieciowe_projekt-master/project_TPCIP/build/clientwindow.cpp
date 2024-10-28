@@ -62,6 +62,12 @@ ClientWindow::ClientWindow(QWidget *parent) : QWidget(parent) {
     sendImageButton->setGeometry(10, 720, 200, 50);
     connect(sendImageButton, &QPushButton::clicked, this, &ClientWindow::sendImageToServer);
 
+    //Desktop sharing
+    QPushButton *sendScreenshotButton = new QPushButton("Send Screenshot", this);
+    sendScreenshotButton->setGeometry(410, 720, 200, 50);
+    connect(sendScreenshotButton, &QPushButton::clicked, this, &ClientWindow::shareScreen);
+
+
     //Initialize delete button
     QPushButton *deleteButton = new QPushButton("Clear Chat", this);
     deleteButton->setFont(font);
@@ -165,3 +171,29 @@ void ClientWindow::sendImageToServer() {
 void ClientWindow::clearChat() {
    messageLog->clear();
 }
+
+void ClientWindow::shareScreen() {
+    QScreen *screen = QGuiApplication::primaryScreen();
+    if (!screen) return;
+
+    QPixmap screenshot = screen->grabWindow(0);
+    QByteArray byteArray;
+    QBuffer buffer(&byteArray);
+    if (buffer.open(QIODevice::WriteOnly)) {
+        if (screenshot.save(&buffer, "JPEG")) {
+            if (socket->state() == QAbstractSocket::ConnectedState) {
+                // add prefix screenshod to make possible recoglise ss from classig image
+                QByteArray dataToSend = "SCREENSHOT" + byteArray;
+                socket->write(dataToSend);
+                socket->flush();
+            } else {
+                messageLog->append("Socket not connected.");
+            }
+        } else {
+            messageLog->append("Failed to save screenshot.");
+        }
+    } else {
+        messageLog->append("Failed to open buffer.");
+    }
+}
+
