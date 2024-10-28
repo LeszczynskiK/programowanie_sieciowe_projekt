@@ -118,33 +118,38 @@ void ClientWindow::onConnected() {
 }
 
 void ClientWindow::readMessage() {
+    QTcpSocket *socket = qobject_cast<QTcpSocket*>(sender());
+    if (!socket) {
+        return;
+    }
+
     QByteArray data = socket->readAll();
     QImage image;
-    if (image.loadFromData(data)) { //If data is picture
-        if (image.loadFromData(data)) { //If data is an image
-            //Find all QLabels except added frames
-            QList<QLabel *> labels = findChildren<QLabel *>();
-            for (QLabel *label : labels) {
-                //Is frame?
-                if (label->geometry() != QRect(600, 210, 180, 180) &&
-                    label->geometry() != QRect(600, 450, 180, 180)) {
-                    delete label;//Delete all exept for frame
-                }
-            }
-        }
 
-        //Scale image to 160 x 160
-        QImage scaledImage = image.scaled(160, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
-        //Display picture
+    //Data is image?
+    if (image.loadFromData(data)) {
+        //New qlabel to images
         QLabel *imageLabel = new QLabel(this);
-        imageLabel->setPixmap(QPixmap::fromImage(scaledImage));
-        imageLabel->setGeometry(608, 218, 160, 160);//Scale and set pos
+        imageLabel->setPixmap(QPixmap::fromImage(image.scaled(160, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
+
+        //Pos of classic image
+        imageLabel->setGeometry(608, 218, 160, 160);
         imageLabel->show();
+    } else if (data.startsWith("SCREENSHOT")) { //is it screenshot?
+        QByteArray screenshotData = data.mid(10);
+        QImage screenshotImage;
+        if (screenshotImage.loadFromData(screenshotData)) {
+            //new qlabel for ss
+            QLabel *screenshotLabel = new QLabel(this);
+            screenshotLabel->setPixmap(QPixmap::fromImage(screenshotImage.scaled(160, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
+            screenshotLabel->setGeometry(608, 450, 160, 160);
+            screenshotLabel->show();
+
+        }
     } else {
-        QString serverMessage = QString::fromUtf8(data);//if data is txt type
+        QString serverMessage = QString::fromUtf8(data);
         messageLog->setTextColor(Qt::red);//message from server is red
-        messageLog->append("Server: " + serverMessage);//Only message from server
+        messageLog->append("Server: " + serverMessage);
     }
 }
 

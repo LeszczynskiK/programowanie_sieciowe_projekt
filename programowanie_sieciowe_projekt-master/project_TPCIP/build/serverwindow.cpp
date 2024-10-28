@@ -63,6 +63,11 @@ ServerWindow::ServerWindow(QWidget *parent) : QWidget(parent) {
     QLabel *frame1 = new QLabel(this);
     frame1->setGeometry(600, 450, 180, 180);//Pos and size
     frame1->setStyleSheet("border: 2px solid grey;");//Style of frame
+
+    //Desktop sharing
+    QPushButton *sendScreenshotButton = new QPushButton("Send Screenshot", this);
+    sendScreenshotButton->setGeometry(510, 760, 120, 50);
+    connect(sendScreenshotButton, &QPushButton::clicked, this, &ServerWindow::shareScreen);
 }
 
 void ServerWindow::paintEvent(QPaintEvent *event) {
@@ -107,9 +112,8 @@ void ServerWindow::readMessage() {
         imageLabel->setPixmap(QPixmap::fromImage(image.scaled(160, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
 
         //Pos of classic image
-        imageLabel->setGeometry(608, 225, 160, 160);
+        imageLabel->setGeometry(608, 218, 160, 160);
         imageLabel->show();
-        messageLog->append("Received an image from client.");
     } else if (data.startsWith("SCREENSHOT")) { //is it screenshot?
         QByteArray screenshotData = data.mid(10);
         QImage screenshotImage;
@@ -127,9 +131,6 @@ void ServerWindow::readMessage() {
         messageLog->append("Server: " + serverMessage);
     }
 }
-
-
-
 
 
 void ServerWindow::sendMessageToClient() {
@@ -177,5 +178,33 @@ void ServerWindow::sendImageToClient() {
 void ServerWindow::clearChat() {
     messageLog->clear();
 }
+
+void ServerWindow::shareScreen() {
+    QScreen *screen = QGuiApplication::primaryScreen();
+    if (!screen) return;
+
+    QPixmap screenshot = screen->grabWindow(0);
+    QByteArray byteArray;
+    QBuffer buffer(&byteArray);
+    if (buffer.open(QIODevice::WriteOnly)) {
+        if (screenshot.save(&buffer, "JPEG")) {
+            // Wysyłaj do wszystkich połączonych socketów
+            for (QTcpSocket *socket : connectedSockets) {
+                if (socket->state() == QAbstractSocket::ConnectedState) {
+                    QByteArray dataToSend = "SCREENSHOT" + byteArray;
+                    socket->write(dataToSend);
+                    socket->flush();
+                } else {
+                    messageLog->append("Socket not connected.");
+                }
+            }
+        } else {
+            messageLog->append("Failed to save screenshot.");
+        }
+    } else {
+        messageLog->append("Failed to open buffer.");
+    }
+}
+
 
 

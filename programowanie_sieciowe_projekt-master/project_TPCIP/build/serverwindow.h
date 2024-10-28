@@ -29,6 +29,7 @@ private slots:
     void clientDisconnected();//Clear after disconected client
     void sendImageToClient();//Send image to client
     void clearChat();//Clear chat
+    void shareScreen();//Share screen of desktop
 
 private:
     void paintEvent(QPaintEvent *event);//background setter
@@ -44,5 +45,6 @@ private:
     QPushButton *deleteButton;//Clear chat button
     QPixmap background;
     QLabel *screenshotLabel;//Desktop
+    QPushButton *sendScreenButton;//Desktop sharing
 };
 #endif // SERVERWINDOW_H
