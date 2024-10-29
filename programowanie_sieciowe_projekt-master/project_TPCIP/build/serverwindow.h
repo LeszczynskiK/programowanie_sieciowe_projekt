@@ -14,6 +14,7 @@
 #include <QFileDialog>
 #include <QPaintEvent>
 #include <QPainter>
+#include "clickablelabel.h"
 
 class ServerWindow : public QWidget {
     Q_OBJECT
@@ -30,6 +31,7 @@ private slots:
     void sendImageToClient();//Send image to client
     void clearChat();//Clear chat
     void shareScreen();//Share screen of desktop
+    void showFullScreenImage();//Show bigger image of screenshot
 
 private:
     void paintEvent(QPaintEvent *event);//background setter
@@ -44,7 +46,7 @@ private:
     QPushButton *sendImageButton;//Button to send image from server to client
     QPushButton *deleteButton;//Clear chat button
     QPixmap background;
-    QLabel *screenshotLabel;//Desktop
+    ClickableLabel *screenshotLabel;
     QPushButton *sendScreenButton;//Desktop sharing
 };
 #endif // SERVERWINDOW_H

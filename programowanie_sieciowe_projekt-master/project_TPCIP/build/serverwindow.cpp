@@ -68,6 +68,11 @@ ServerWindow::ServerWindow(QWidget *parent) : QWidget(parent) {
     QPushButton *sendScreenshotButton = new QPushButton("Send Screenshot", this);
     sendScreenshotButton->setGeometry(510, 760, 120, 50);
     connect(sendScreenshotButton, &QPushButton::clicked, this, &ServerWindow::shareScreen);
+
+    screenshotLabel = new ClickableLabel(this);
+    connect(screenshotLabel, &ClickableLabel::clicked, this, &ServerWindow::showFullScreenImage);
+
+
 }
 
 void ServerWindow::paintEvent(QPaintEvent *event) {
@@ -105,25 +110,20 @@ void ServerWindow::readMessage() {
     QByteArray data = socket->readAll();
     QImage image;
 
-    //Data is image?
+    // Sprawdź, czy dane to obraz
     if (image.loadFromData(data)) {
-        //New qlabel to images
-        QLabel *imageLabel = new QLabel(this);
-        imageLabel->setPixmap(QPixmap::fromImage(image.scaled(160, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
-
-        //Pos of classic image
-        imageLabel->setGeometry(608, 218, 160, 160);
-        imageLabel->show();
-    } else if (data.startsWith("SCREENSHOT")) { //is it screenshot?
+        // Użyj screenshotLabel, aby ustawić zaktualizowany obraz
+        screenshotLabel->setPixmap(QPixmap::fromImage(image.scaled(160, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
+        screenshotLabel->setGeometry(608, 218, 160, 160);
+        screenshotLabel->show();
+    } else if (data.startsWith("SCREENSHOT")) { // sprawdzenie czy to zrzut ekranu
         QByteArray screenshotData = data.mid(10);
         QImage screenshotImage;
         if (screenshotImage.loadFromData(screenshotData)) {
-           //new qlabel for ss
-            QLabel *screenshotLabel = new QLabel(this);
+            // Zaktualizuj pixmapę screenshotLabel zamiast tworzyć nowy QLabel
             screenshotLabel->setPixmap(QPixmap::fromImage(screenshotImage.scaled(160, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
             screenshotLabel->setGeometry(608, 450, 160, 160);
             screenshotLabel->show();
-
         }
     } else {
         QString serverMessage = QString::fromUtf8(data);
@@ -131,6 +131,7 @@ void ServerWindow::readMessage() {
         messageLog->append("Server: " + serverMessage);
     }
 }
+
 
 
 void ServerWindow::sendMessageToClient() {
@@ -188,7 +189,7 @@ void ServerWindow::shareScreen() {
     QBuffer buffer(&byteArray);
     if (buffer.open(QIODevice::WriteOnly)) {
         if (screenshot.save(&buffer, "JPEG")) {
-            // Wysyłaj do wszystkich połączonych socketów
+            //Send to connected sockets
             for (QTcpSocket *socket : connectedSockets) {
                 if (socket->state() == QAbstractSocket::ConnectedState) {
                     QByteArray dataToSend = "SCREENSHOT" + byteArray;
@@ -204,6 +205,20 @@ void ServerWindow::shareScreen() {
     } else {
         messageLog->append("Failed to open buffer.");
     }
+}
+
+void ServerWindow::showFullScreenImage() {
+    if (!screenshotLabel || screenshotLabel->pixmap().isNull()) {
+        return; // Upewnij się, że istnieje obraz
+    }
+
+    // Utwórz nowe okno dla pełnego obrazu
+    QLabel *fullScreenLabel = new QLabel;
+    fullScreenLabel->setPixmap(screenshotLabel->pixmap().scaled(screenshotLabel->pixmap().size() * 6, Qt::KeepAspectRatio));
+    fullScreenLabel->setWindowTitle("Screenshot Preview");
+    fullScreenLabel->setAttribute(Qt::WA_DeleteOnClose); // Zamknięcie okna usunie je z pamięci
+    fullScreenLabel->resize(screenshotLabel->pixmap().size() * 6);
+    fullScreenLabel->show();
 }
 
 
