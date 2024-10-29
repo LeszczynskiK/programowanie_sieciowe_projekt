@@ -45,5 +45,6 @@ private:
     QPixmap background;
     QPushButton *sendScreenButton;//Desktop sharing
     ClickableLabel *screenshotLabel;
+    QImage receivedScreenshot;//Ss in full quality
 };
 #endif // CLIENTWINDOW_H

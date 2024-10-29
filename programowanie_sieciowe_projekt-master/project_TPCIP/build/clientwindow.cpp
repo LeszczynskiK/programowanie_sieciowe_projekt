@@ -129,20 +129,26 @@ void ClientWindow::readMessage() {
     QByteArray data = socket->readAll();
     QImage image;
 
-    // Sprawdź, czy dane to obraz
+    //Img exist?
     if (image.loadFromData(data)) {
-        // Użyj screenshotLabel, aby ustawić zaktualizowany obraz
+        //set specificity
         screenshotLabel->setPixmap(QPixmap::fromImage(image.scaled(160, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
         screenshotLabel->setGeometry(608, 218, 160, 160);
         screenshotLabel->show();
-    } else if (data.startsWith("SCREENSHOT")) { // sprawdzenie czy to zrzut ekranu
+
+        //save gotten img
+        receivedScreenshot = image;//keep to later use
+    } else if (data.startsWith("SCREENSHOT")) { //is it ss
         QByteArray screenshotData = data.mid(10);
         QImage screenshotImage;
         if (screenshotImage.loadFromData(screenshotData)) {
-            // Zaktualizuj pixmapę screenshotLabel zamiast tworzyć nowy QLabel
+            //actualise pixmap
             screenshotLabel->setPixmap(QPixmap::fromImage(screenshotImage.scaled(160, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
             screenshotLabel->setGeometry(608, 450, 160, 160);
             screenshotLabel->show();
+
+            //save img
+            receivedScreenshot = screenshotImage; //keep to later use
         }
     } else {
         QString serverMessage = QString::fromUtf8(data);
@@ -199,17 +205,23 @@ void ClientWindow::shareScreen() {
     }
 }
 
+
 void ClientWindow::showFullScreenImage() {
-    if (!screenshotLabel || screenshotLabel->pixmap().isNull()) {
-        return; // Upewnij się, że istnieje obraz
+    if (receivedScreenshot.isNull()) {
+        return;//Img exist?
     }
 
-    // Utwórz nowe okno dla pełnego obrazu
+    //new qlabel to display
     QLabel *fullScreenLabel = new QLabel;
-    fullScreenLabel->setPixmap(screenshotLabel->pixmap().scaled(screenshotLabel->pixmap().size() * 6, Qt::KeepAspectRatio));
+    fullScreenLabel->setFixedSize(640, 640);//new window size
+
+    //Scale screenshot
+    QPixmap scaledPixmap = QPixmap::fromImage(receivedScreenshot.scaled(640, 640, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    fullScreenLabel->setPixmap(scaledPixmap);
+
     fullScreenLabel->setWindowTitle("Screenshot Preview");
-    fullScreenLabel->setAttribute(Qt::WA_DeleteOnClose); // Zamknięcie okna usunie je z pamięci
-    fullScreenLabel->resize(screenshotLabel->pixmap().size() * 6);
+    fullScreenLabel->setAttribute(Qt::WA_DeleteOnClose);//close and delete from memory
+    fullScreenLabel->setWindowFlags(Qt::Window);//Window type
     fullScreenLabel->show();
 }
 
