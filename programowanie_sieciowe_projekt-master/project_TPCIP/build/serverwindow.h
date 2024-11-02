@@ -31,7 +31,8 @@ private slots:
     void sendImageToClient();//Send image to client
     void clearChat();//Clear chat
     void shareScreen();//Share screen of desktop
-    void showFullScreenImage();//Show bigger image of screenshot
+    void showFullScreenImage();//Show bigger image
+    void showFullScreenShare();//Show bigger image of screenshot
 
 private:
     void paintEvent(QPaintEvent *event);//background setter
@@ -47,7 +48,9 @@ private:
     QPushButton *deleteButton;//Clear chat button
     QPixmap background;
     ClickableLabel *screenshotLabel;
+    ClickableLabel *imageLabel;
     QPushButton *sendScreenButton;//Desktop sharing
     QImage receivedScreenshot;//Ss in full quality
+    QImage receivedImage;//Image in full quality
 };
 #endif // SERVERWINDOW_H

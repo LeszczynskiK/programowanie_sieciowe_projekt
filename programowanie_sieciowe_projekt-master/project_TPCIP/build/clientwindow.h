@@ -28,7 +28,8 @@ private slots:
     void sendImageToServer();
     void clearChat();//Slot for clearing the chat
     void shareScreen();//Share screen of desktop
-    void showFullScreenImage();
+    void showFullScreenImage();//Show bigger image
+    void showFullScreenShare();//Show bigger image of screenshot
 
 private:
     void paintEvent(QPaintEvent *event);//background setter
@@ -43,8 +44,11 @@ private:
     QList<QTcpSocket*> connectedSockets;//All clients conected to server
     QPushButton *deleteButton;//Clear chat
     QPixmap background;
-    QPushButton *sendScreenButton;//Desktop sharing
     ClickableLabel *screenshotLabel;
+    ClickableLabel *imageLabel;
+    QPushButton *sendScreenButton;//Desktop sharing
     QImage receivedScreenshot;//Ss in full quality
+    QImage receivedImage;//Image in full quality
 };
+
 #endif // CLIENTWINDOW_H
