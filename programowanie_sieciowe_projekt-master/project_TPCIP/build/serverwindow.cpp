@@ -3,10 +3,11 @@
 ServerWindow::ServerWindow(QWidget *parent) : QWidget(parent) {
     setWindowTitle("Server Window");
 
-    const int x =860;
-    const int y=860;
+    const int x=860;//X window size
+    const int y=860;//Y window size
 
-    setFixedSize(x, y);//Window size
+    setFixedSize(x, y);//Set window size
+    //Page background
     background = QPixmap("/home/krzysiek89/Desktop/QT_aplikacje/Programowanie_sieciowe/programowanie_sieciowe_projekt-master/project_TPCIP/bck.jpg").scaled(x, y);
 
     QList<QTcpSocket*> connectedSockets;//list of connected clients
@@ -51,9 +52,21 @@ ServerWindow::ServerWindow(QWidget *parent) : QWidget(parent) {
     QPushButton *deleteButton = new QPushButton("Clear Chat", this);
     deleteButton->setFont(font);
     deleteButton->setGeometry(360, 760, 120, 50); // Geometry for the delete button
-
-    // Connect the delete button signal to the corresponding slot
     connect(deleteButton, &QPushButton::clicked, this, &ServerWindow::clearChat);
+
+
+    //Remove currently connected client button
+    QPushButton *removeClientButton = new QPushButton("Remove connections", this);
+    removeClientButton->setFont(font);
+    removeClientButton->setGeometry(340, 50, 220, 50);
+    connect(removeClientButton, &QPushButton::clicked, this, &ServerWindow::removeClient);
+
+    //Stop server button
+    QPushButton *stopServerButton = new QPushButton("Stop Server", this);
+    stopServerButton->setFont(font);
+    stopServerButton->setGeometry(600, 50, 120, 50);
+    connect(stopServerButton, &QPushButton::clicked, this, &ServerWindow::stopServer);
+
 
     //Add frame based on QLabel
     QLabel *frame = new QLabel(this);
@@ -69,10 +82,10 @@ ServerWindow::ServerWindow(QWidget *parent) : QWidget(parent) {
     sendScreenshotButton->setGeometry(510, 760, 120, 50);
     connect(sendScreenshotButton, &QPushButton::clicked, this, &ServerWindow::shareScreen);
 
-    screenshotLabel = new ClickableLabel(this);
+    screenshotLabel = new ClickableLabel(this);//Screenshot got
     connect(screenshotLabel, &ClickableLabel::clicked, this, &ServerWindow::showFullScreenShare);
 
-    imageLabel = new ClickableLabel(this);
+    imageLabel = new ClickableLabel(this);//Image got
     connect(imageLabel, &ClickableLabel::clicked, this, &ServerWindow::showFullScreenImage);
 
 }
@@ -93,7 +106,6 @@ void ServerWindow::onStartButtonClicked() {
     }
 }
 
-
 //Handle new connections
 void ServerWindow::newConnection() {
     QTcpSocket *socket = tcpServer->nextPendingConnection();//Get connection with new client
@@ -101,6 +113,48 @@ void ServerWindow::newConnection() {
     connect(socket, &QTcpSocket::readyRead, this, &ServerWindow::readMessage);//Hear message
     connect(socket, &QTcpSocket::disconnected, this, &ServerWindow::clientDisconnected);//Delete cliend after disconecting(client)
     messageLog->append("Client connected.");
+}
+
+// Remove currently connected clients
+void ServerWindow::removeClient() {
+    if (!connectedSockets.isEmpty()) {
+        for (QTcpSocket *socket : connectedSockets) {
+            if (socket->state() == QAbstractSocket::ConnectedState) {
+                socket->write("forced_stop");//Send information to client
+                socket->disconnectFromHost();//Disconnect client
+                socket->waitForDisconnected();//Wait for disconnection
+                socket->deleteLater();//Delete socket
+            }
+        }
+        connectedSockets.clear();//Clear connected socked list
+        messageLog->append("Removed clients");
+    } else {
+        messageLog->append("No clients to remove");
+    }
+}
+
+//Stop the server
+void ServerWindow::stopServer() {
+    //Close sockets for clients
+    for (QTcpSocket *clientSocket : connectedSockets) {
+        if (clientSocket) {
+            socket->write("forced_stop");//Send information to client
+            clientSocket->disconnectFromHost();//End connection
+            clientSocket->waitForDisconnected();//Wait for full disconnection
+            clientSocket->deleteLater();//Put socket to delete - save delete
+        }
+    }
+
+    //close server
+    if (tcpServer) {
+        tcpServer->close();//stop listening
+    }
+
+    connectedSockets.clear();//clear connection list
+
+    //Actualise label
+    statusLabel->setText("Server is not running");
+    messageLog->append("Server stopped");
 }
 
 // Read message from client
@@ -144,7 +198,7 @@ void ServerWindow::readMessage() {
 
 
 
-void ServerWindow::sendMessageToClient() {
+void ServerWindow::sendMessageToClient() {//Send message to client method
     QString message = messageInput->text();
     if (!message.isEmpty()) {
         for (QTcpSocket *socket : connectedSockets) {//Send message to all clients
@@ -186,11 +240,11 @@ void ServerWindow::sendImageToClient() {
     }
 }
 
-void ServerWindow::clearChat() {
+void ServerWindow::clearChat() {//Clear messages
     messageLog->clear();
 }
 
-void ServerWindow::shareScreen() {
+void ServerWindow::shareScreen() {//Send screenshot of desktop
     QScreen *screen = QGuiApplication::primaryScreen();
     if (!screen) return;
 
@@ -217,7 +271,7 @@ void ServerWindow::shareScreen() {
     }
 }
 
-void ServerWindow::showFullScreenImage() {
+void ServerWindow::showFullScreenImage() {//Full size of image got
     if (receivedScreenshot.isNull()) {
         return;//Img exist?
     }
@@ -230,13 +284,13 @@ void ServerWindow::showFullScreenImage() {
     QPixmap scaledPixmap = QPixmap::fromImage(receivedImage.scaled(640, 640, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     fullScreenLabel->setPixmap(scaledPixmap);
 
-    fullScreenLabel->setWindowTitle("Screenshot Preview");
+    fullScreenLabel->setWindowTitle("Image Preview");
     fullScreenLabel->setAttribute(Qt::WA_DeleteOnClose);//close and delete from memory
     fullScreenLabel->setWindowFlags(Qt::Window);//Window type
     fullScreenLabel->show();
 }
 
-void ServerWindow::showFullScreenShare() {
+void ServerWindow::showFullScreenShare() {//Full size of screenshot got
     if (receivedScreenshot.isNull()) {
         return;//Img exist?
     }

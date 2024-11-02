@@ -6,10 +6,11 @@ ClientWindow::ClientWindow(QWidget *parent) : QWidget(parent) {
 
     setWindowTitle("Client Window");
 
-    const int x =860;
-    const int y=860;
+    const int x =860;//x window size
+    const int y=860;//y window size
 
-    setFixedSize(x, y);//Window size
+    setFixedSize(x, y);//Set window size
+    //Background image
     background = QPixmap("/home/krzysiek89/Desktop/QT_aplikacje/Programowanie_sieciowe/programowanie_sieciowe_projekt-master/project_TPCIP/bck.jpg").scaled(x, y);
 
 
@@ -62,34 +63,37 @@ ClientWindow::ClientWindow(QWidget *parent) : QWidget(parent) {
     sendImageButton->setGeometry(10, 720, 200, 50);
     connect(sendImageButton, &QPushButton::clicked, this, &ClientWindow::sendImageToServer);
 
+    //Initialize delete button
+    QPushButton *deleteButton = new QPushButton("Clear Chat", this);
+    deleteButton->setFont(font);
+    deleteButton->setGeometry(250, 720, 120, 50); // Geometry for the delete button
+    connect(deleteButton, &QPushButton::clicked, this, &ClientWindow::clearChat);
+
     //Desktop sharing
     QPushButton *sendScreenshotButton = new QPushButton("Send Screenshot", this);
     sendScreenshotButton->setGeometry(410, 720, 200, 50);
     connect(sendScreenshotButton, &QPushButton::clicked, this, &ClientWindow::shareScreen);
 
-
-    //Initialize delete button
-    QPushButton *deleteButton = new QPushButton("Clear Chat", this);
-    deleteButton->setFont(font);
-    deleteButton->setGeometry(250, 720, 120, 50); // Geometry for the delete button
-
-    //Connect the delete button signal to the corresponding slot
-    connect(deleteButton, &QPushButton::clicked, this, &ClientWindow::clearChat);
+    //Disconnect from server button
+    disconnectButton = new QPushButton("Disconnect", this);
+    disconnectButton->setFont(font);
+    disconnectButton->setGeometry(650, 720, 200, 50); // Pozycja i rozmiar przycisku
+    connect(disconnectButton, &QPushButton::clicked, this, &ClientWindow::disconnectFromServer);
 
     //Add frame based on QLabel
-    QLabel *frame = new QLabel(this);
+    QLabel *frame = new QLabel(this);//Frame 1
     frame->setGeometry(600, 210, 180, 180);//Pos and size
     frame->setStyleSheet("border: 2px solid grey;");//Style of frame
 
-    QLabel *frame1 = new QLabel(this);
+    QLabel *frame1 = new QLabel(this);//Frame 2
     frame1->setGeometry(600, 450, 180, 180);//Pos and size
     frame1->setStyleSheet("border: 2px solid grey;");//Style of frame
 
-    screenshotLabel = new ClickableLabel(this);
-    connect(screenshotLabel, &ClickableLabel::clicked, this, &ClientWindow::showFullScreenShare);
+    screenshotLabel = new ClickableLabel(this);//Screenshot got
+    connect(screenshotLabel, &ClickableLabel::clicked, this, &ClientWindow::showFullScreenShare);//Screenshot event
 
-    imageLabel = new ClickableLabel(this);
-    connect(imageLabel, &ClickableLabel::clicked, this, &ClientWindow::showFullScreenImage);
+    imageLabel = new ClickableLabel(this);//Image got
+    connect(imageLabel, &ClickableLabel::clicked, this, &ClientWindow::showFullScreenImage);//Image event
 }
 
 void ClientWindow::paintEvent(QPaintEvent *event) {
@@ -107,7 +111,7 @@ void ClientWindow::connectToServer() {
     }
 }
 
-void ClientWindow::sendMessage() {
+void ClientWindow::sendMessage() {//Send message to server
     QString message = messageInput->text();
     if (!message.isEmpty()) {
         qDebug() << "Sending message:" << message;//Log messages
@@ -118,12 +122,26 @@ void ClientWindow::sendMessage() {
 }
 
 
-void ClientWindow::onConnected() {
+void ClientWindow::onConnected() {//Information about connection
     statusLabel->setText("Connected to server");
     sendMessage();//Send greeting
 }
 
-void ClientWindow::readMessage() {
+void ClientWindow::disconnectFromServer() {
+    if (socket->state() == QAbstractSocket::ConnectedState) {
+        socket->disconnectFromHost();//Disconnect
+        socket->waitForDisconnected();//Wait for disconnection
+        statusLabel->setText("Disconnected");//Actualise status
+        messageLog->append("Disconnected from server.");
+    }
+
+    else
+    {
+        messageLog->append("Already disconnected.");//If acutally disconnected...
+    }
+}
+
+void ClientWindow::readMessage() {//Read all type of messages
     QTcpSocket *socket = qobject_cast<QTcpSocket*>(sender());
     if (!socket) {
         return;
@@ -131,6 +149,10 @@ void ClientWindow::readMessage() {
 
     QByteArray data = socket->readAll();
     QImage image;
+
+    if (data == "forced_stop") {//if stop forced - change status label
+        statusLabel->setText("Forced Stop"); // Update connection status
+    }
 
     //Img exist?
     if (image.loadFromData(data)) {
@@ -160,7 +182,7 @@ void ClientWindow::readMessage() {
     }
 }
 
-void ClientWindow::sendImageToServer() {
+void ClientWindow::sendImageToServer() {//Send img
     //Dialog to choose image file
     QString fileName = QFileDialog::getOpenFileName(this, "Select Image", "", "Images (*.png *.jpg *.jpeg *.bmp *.gif)");
     if (fileName.isEmpty()) {
@@ -179,11 +201,11 @@ void ClientWindow::sendImageToServer() {
     }
 }
 
-void ClientWindow::clearChat() {
+void ClientWindow::clearChat() {//Clear chat method
     messageLog->clear();
 }
 
-void ClientWindow::shareScreen() {
+void ClientWindow::shareScreen() {//Send screenshot of desktop
     QScreen *screen = QGuiApplication::primaryScreen();
     if (!screen) return;
 
@@ -209,7 +231,7 @@ void ClientWindow::shareScreen() {
 }
 
 
-void ClientWindow::showFullScreenImage() {
+void ClientWindow::showFullScreenImage() {//Full size of image display in window
     if (receivedScreenshot.isNull()) {
         return;//Img exist?
     }
@@ -222,13 +244,13 @@ void ClientWindow::showFullScreenImage() {
     QPixmap scaledPixmap = QPixmap::fromImage(receivedImage.scaled(640, 640, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     fullScreenLabel->setPixmap(scaledPixmap);
 
-    fullScreenLabel->setWindowTitle("Screenshot Preview");
+    fullScreenLabel->setWindowTitle("Image Preview");
     fullScreenLabel->setAttribute(Qt::WA_DeleteOnClose);//close and delete from memory
     fullScreenLabel->setWindowFlags(Qt::Window);//Window type
     fullScreenLabel->show();
 }
 
-void ClientWindow::showFullScreenShare() {
+void ClientWindow::showFullScreenShare() {//Full size of screenshot display
     if (receivedScreenshot.isNull()) {
         return;//Img exist?
     }
