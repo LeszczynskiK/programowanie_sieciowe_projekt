@@ -14,6 +14,7 @@
 #include <QFileDialog>
 #include <QPaintEvent>
 #include <QPainter>
+#include <QTimer>
 #include "clickablelabel.h"
 
 class ServerWindow : public QWidget {
@@ -35,6 +36,7 @@ private slots:
     void showFullScreenShare();//Show bigger image of screenshot
     void removeClient();//Remove currently connected client
     void stopServer();//Turn off server
+    void toggleScreenshotSending();//On/off screenshot sending method
 
 private:
     void paintEvent(QPaintEvent *event);//background setter
@@ -54,5 +56,7 @@ private:
     QPushButton *sendScreenButton;//Desktop sharing
     QImage receivedScreenshot;//Ss in full quality
     QImage receivedImage;//Image in full quality
+    QTimer *screenshotTimer;//Screen is being send after this time
+    bool sendingScreenshots = false;//Menage if you want to turn on/off screenshot sending
 };
 #endif // SERVERWINDOW_H

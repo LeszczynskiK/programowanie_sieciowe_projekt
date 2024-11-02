@@ -77,10 +77,14 @@ ServerWindow::ServerWindow(QWidget *parent) : QWidget(parent) {
     frame1->setGeometry(600, 450, 180, 180);//Pos and size
     frame1->setStyleSheet("border: 2px solid grey;");//Style of frame
 
+    screenshotTimer = new QTimer(this);
+    connect(screenshotTimer,&QTimer::timeout, this, &ServerWindow::shareScreen);
+    screenshotTimer->setInterval(1000);
+
     //Desktop sharing
     QPushButton *sendScreenshotButton = new QPushButton("Send Screenshot", this);
     sendScreenshotButton->setGeometry(510, 760, 120, 50);
-    connect(sendScreenshotButton, &QPushButton::clicked, this, &ServerWindow::shareScreen);
+    connect(sendScreenshotButton, &QPushButton::clicked, this, &ServerWindow::toggleScreenshotSending);
 
     screenshotLabel = new ClickableLabel(this);//Screenshot got
     connect(screenshotLabel, &ClickableLabel::clicked, this, &ServerWindow::showFullScreenShare);
@@ -206,6 +210,10 @@ void ServerWindow::sendMessageToClient() {//Send message
                 socket->write(message.toUtf8());//write
                 socket->flush();//Flush socket
             }
+            else
+            {
+                qDebug("Socket not connected!");
+            }
         }
         messageLog->append("Sent message to client: " + message);
         messageInput->clear();
@@ -307,4 +315,14 @@ void ServerWindow::showFullScreenShare() {//Full size of screenshot got
     fullScreenLabel->setAttribute(Qt::WA_DeleteOnClose);//close and delete from memory
     fullScreenLabel->setWindowFlags(Qt::Window);//Window type
     fullScreenLabel->show();
+}
+
+void ServerWindow::toggleScreenshotSending() {
+    sendingScreenshots = !sendingScreenshots;//Change flag(on/off screenshot sending)
+
+    if (sendingScreenshots) {
+        screenshotTimer->start();//Turn on timer
+    } else {
+        screenshotTimer->stop();//Stop timer
+    }
 }

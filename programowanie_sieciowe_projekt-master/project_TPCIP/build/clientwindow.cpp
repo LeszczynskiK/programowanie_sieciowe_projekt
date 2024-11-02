@@ -72,7 +72,7 @@ ClientWindow::ClientWindow(QWidget *parent) : QWidget(parent) {
     //Desktop sharing
     QPushButton *sendScreenshotButton = new QPushButton("Send Screenshot", this);
     sendScreenshotButton->setGeometry(410, 720, 200, 50);
-    connect(sendScreenshotButton, &QPushButton::clicked, this, &ClientWindow::shareScreen);
+    connect(sendScreenshotButton, &QPushButton::clicked, this, &ClientWindow::toggleScreenshotSending);
 
     //Disconnect from server button
     disconnectButton = new QPushButton("Disconnect", this);
@@ -94,6 +94,10 @@ ClientWindow::ClientWindow(QWidget *parent) : QWidget(parent) {
 
     imageLabel = new ClickableLabel(this);//Image got
     connect(imageLabel, &ClickableLabel::clicked, this, &ClientWindow::showFullScreenImage);//Image event
+
+    screenshotTimer = new QTimer(this);
+    connect(screenshotTimer,&QTimer::timeout, this, &ClientWindow::shareScreen);
+    screenshotTimer->setInterval(1000);
 }
 
 void ClientWindow::paintEvent(QPaintEvent *event) {
@@ -300,4 +304,14 @@ void ClientWindow::handleSocketError() {
 
     //Display on log
     messageLog->append("Error: " + socket->errorString());
+}
+
+void ClientWindow::toggleScreenshotSending() {
+    sendingScreenshots = !sendingScreenshots;//Change flag(on/off screenshot sending)
+
+    if (sendingScreenshots) {
+        screenshotTimer->start();//Turn on timer
+    } else {
+        screenshotTimer->stop();//Stop timer
+    }
 }
