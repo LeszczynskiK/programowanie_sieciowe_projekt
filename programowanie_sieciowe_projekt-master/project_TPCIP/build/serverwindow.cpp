@@ -138,24 +138,25 @@ void ServerWindow::stopServer() {
     //Close sockets for clients
     for (QTcpSocket *clientSocket : connectedSockets) {
         if (clientSocket) {
-            socket->write("forced_stop");//Send information to client
+            clientSocket->write("forced_stop");//Send information to client
             clientSocket->disconnectFromHost();//End connection
             clientSocket->waitForDisconnected();//Wait for full disconnection
-            clientSocket->deleteLater();//Put socket to delete - save delete
+            clientSocket->deleteLater();//Mark socket for deletion
         }
     }
 
-    //close server
+    //Close the server
     if (tcpServer) {
-        tcpServer->close();//stop listening
+        tcpServer->close();//Stop listening
     }
 
-    connectedSockets.clear();//clear connection list
+    connectedSockets.clear();//Clear the connection list
 
-    //Actualise label
+    //Update the status label
     statusLabel->setText("Server is not running");
     messageLog->append("Server stopped");
 }
+
 
 // Read message from client
 void ServerWindow::readMessage() {
@@ -197,18 +198,17 @@ void ServerWindow::readMessage() {
 
 
 
-
-void ServerWindow::sendMessageToClient() {//Send message to client method
+void ServerWindow::sendMessageToClient() {//Send message
     QString message = messageInput->text();
-    if (!message.isEmpty()) {
-        for (QTcpSocket *socket : connectedSockets) {//Send message to all clients
-            if (socket->state() == QAbstractSocket::ConnectedState) {//If connection is still active
-                socket->write(message.toUtf8());//Send message
+    if (!message.isEmpty()) {//
+        for (QTcpSocket *socket : connectedSockets) {//Look for connected socket
+            if (socket->state() == QAbstractSocket::ConnectedState) {
+                socket->write(message.toUtf8());//write
                 socket->flush();//Flush socket
             }
         }
-        messageLog->append("Sent message to client: " + message);//Log of sent message
-        messageInput->clear();//Clear field after sending
+        messageLog->append("Sent message to client: " + message);
+        messageInput->clear();
     }
 }
 

@@ -31,6 +31,7 @@ private slots:
     void showFullScreenImage();//Show bigger image
     void showFullScreenShare();//Show bigger image of screenshot
     void disconnectFromServer();//Disconnect from server connection
+    void handleSocketError();//Information about connection problems
 
 private:
     void paintEvent(QPaintEvent *event);//background setter

@@ -27,7 +27,7 @@ ClientWindow::ClientWindow(QWidget *parent) : QWidget(parent) {
     statusLabel = new QLabel("Disconnected", this);
     statusLabel->setFont(font);
     statusLabel->setStyleSheet("color: yellow;");
-    statusLabel->setGeometry(220, 10, 200, 50);
+    statusLabel->setGeometry(220, 10, 500, 50);
 
     //Initialize message input
     messageInput = new QLineEdit(this);
@@ -37,11 +37,11 @@ ClientWindow::ClientWindow(QWidget *parent) : QWidget(parent) {
     //Initialize buttons
     sendButton = new QPushButton("Send", this);
     sendButton->setFont(font);
-    sendButton->setGeometry(420, 20, 120, 40);
+    sendButton->setGeometry(420, 100, 120, 40);
 
     connectButton = new QPushButton("Connect...", this);
     connectButton->setFont(font);
-    connectButton->setGeometry(550, 20, 150, 40); //Add geometry for the connect button
+    connectButton->setGeometry(550, 100, 150, 40); //Add geometry for the connect button
 
     //Connect signals and slots
     connect(connectButton, &QPushButton::clicked, this, &ClientWindow::connectToServer);
@@ -106,6 +106,7 @@ void ClientWindow::connectToServer() {
     QString ipAddress = ipInput->text();//Get the IP address from the input field
     if (!ipAddress.isEmpty()) {
         socket->connectToHost(ipAddress, 12353);//Attempt to connect to the server
+        connect(socket, &QTcpSocket::errorOccurred, this, &ClientWindow::handleSocketError);
     } else {
         statusLabel->setText("Please enter a valid IP address.");
     }
@@ -267,4 +268,36 @@ void ClientWindow::showFullScreenShare() {//Full size of screenshot display
     fullScreenLabel->setAttribute(Qt::WA_DeleteOnClose);//close and delete from memory
     fullScreenLabel->setWindowFlags(Qt::Window);//Window type
     fullScreenLabel->show();
+}
+void ClientWindow::handleSocketError() {
+    //Read error from socket
+    QAbstractSocket::SocketError socketError = socket->error();
+
+    //Display type of error
+    switch (socketError) {
+    case QAbstractSocket::ConnectionRefusedError:
+        statusLabel->setText("Connection refused. Please check the server IP.");
+        break;
+    case QAbstractSocket::RemoteHostClosedError:
+        statusLabel->setText("Remote host closed the connection.");
+        break;
+    case QAbstractSocket::HostNotFoundError:
+        statusLabel->setText("Host not found. Please check the IP address.");
+        break;
+    case QAbstractSocket::SocketAccessError:
+        statusLabel->setText("Socket access error. Check your permissions.");
+        break;
+    case QAbstractSocket::SocketTimeoutError:
+        statusLabel->setText("Connection timeout. Please try again.");
+        break;
+    case QAbstractSocket::NetworkError:
+        statusLabel->setText("Network error. Check your connection.");
+        break;
+    default:
+        statusLabel->setText("An unknown error occurred: " + socket->errorString());
+        break;
+    }
+
+    //Display on log
+    messageLog->append("Error: " + socket->errorString());
 }
