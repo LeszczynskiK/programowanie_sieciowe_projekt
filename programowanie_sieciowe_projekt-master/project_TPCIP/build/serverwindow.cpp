@@ -286,10 +286,10 @@ void ServerWindow::showFullScreenImage() {//Full size of image got
 
     //new qlabel to display
     QLabel *fullScreenLabel = new QLabel;
-    fullScreenLabel->setFixedSize(640, 640);//new window size
+    fullScreenLabel->setFixedSize(960, 960);//new window size
 
     //Scale screenshot
-    QPixmap scaledPixmap = QPixmap::fromImage(receivedImage.scaled(640, 640, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    QPixmap scaledPixmap = QPixmap::fromImage(receivedImage.scaled(960,960, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     fullScreenLabel->setPixmap(scaledPixmap);
 
     fullScreenLabel->setWindowTitle("Image Preview");

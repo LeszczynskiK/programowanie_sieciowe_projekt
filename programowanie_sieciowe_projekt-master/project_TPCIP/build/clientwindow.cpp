@@ -243,10 +243,10 @@ void ClientWindow::showFullScreenImage() {//Full size of image display in window
 
     //new qlabel to display
     QLabel *fullScreenLabel = new QLabel;
-    fullScreenLabel->setFixedSize(640, 640);//new window size
+    fullScreenLabel->setFixedSize(960, 960);//new window size
 
     //Scale screenshot
-    QPixmap scaledPixmap = QPixmap::fromImage(receivedImage.scaled(640, 640, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    QPixmap scaledPixmap = QPixmap::fromImage(receivedImage.scaled(960, 960, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     fullScreenLabel->setPixmap(scaledPixmap);
 
     fullScreenLabel->setWindowTitle("Image Preview");
@@ -261,7 +261,7 @@ void ClientWindow::showFullScreenShare() {//Full size of screenshot display
     }
 
     //new qlabel to display
-    QLabel *fullScreenLabel = new QLabel;
+    fullScreenLabel = new QLabel;
     fullScreenLabel->setFixedSize(640, 640);//new window size
 
     //Scale screenshot
@@ -271,8 +271,11 @@ void ClientWindow::showFullScreenShare() {//Full size of screenshot display
     fullScreenLabel->setWindowTitle("Screenshot Preview");
     fullScreenLabel->setAttribute(Qt::WA_DeleteOnClose);//close and delete from memory
     fullScreenLabel->setWindowFlags(Qt::Window);//Window type
+    fullScreenLabel->update();
     fullScreenLabel->show();
 }
+
+
 void ClientWindow::handleSocketError() {
     //Read error from socket
     QAbstractSocket::SocketError socketError = socket->error();
