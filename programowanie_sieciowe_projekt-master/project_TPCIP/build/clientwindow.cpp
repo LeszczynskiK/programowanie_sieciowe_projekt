@@ -97,7 +97,7 @@ ClientWindow::ClientWindow(QWidget *parent) : QWidget(parent) {
 
     screenshotTimer = new QTimer(this);
     connect(screenshotTimer,&QTimer::timeout, this, &ClientWindow::shareScreen);
-    screenshotTimer->setInterval(1000);
+    screenshotTimer->setInterval(100);
 }
 
 void ClientWindow::paintEvent(QPaintEvent *event) {
@@ -179,6 +179,13 @@ void ClientWindow::readMessage() {//Read all type of messages
 
             //save img
             receivedScreenshot = screenshotImage; //keep to later use
+
+            if (fullScreenLabel && fullScreenLabel->isVisible()) {
+                QPixmap scaledPixmap = QPixmap::fromImage(receivedScreenshot.scaled(960, 960, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+                fullScreenLabel->setPixmap(scaledPixmap);
+                fullScreenLabel->update();
+                fullScreenLabel->repaint();
+            }
         }
     } else {
         QString serverMessage = QString::fromUtf8(data);
@@ -262,16 +269,15 @@ void ClientWindow::showFullScreenShare() {//Full size of screenshot display
 
     //new qlabel to display
     fullScreenLabel = new QLabel;
-    fullScreenLabel->setFixedSize(640, 640);//new window size
+    fullScreenLabel->setFixedSize(960, 960);//new window size
 
     //Scale screenshot
-    QPixmap scaledPixmap = QPixmap::fromImage(receivedScreenshot.scaled(640, 640, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    QPixmap scaledPixmap = QPixmap::fromImage(receivedScreenshot.scaled(960, 960, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     fullScreenLabel->setPixmap(scaledPixmap);
 
     fullScreenLabel->setWindowTitle("Screenshot Preview");
     fullScreenLabel->setAttribute(Qt::WA_DeleteOnClose);//close and delete from memory
     fullScreenLabel->setWindowFlags(Qt::Window);//Window type
-    fullScreenLabel->update();
     fullScreenLabel->show();
 }
 

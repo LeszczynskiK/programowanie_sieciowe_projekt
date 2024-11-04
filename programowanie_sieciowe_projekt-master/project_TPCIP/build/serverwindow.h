@@ -56,6 +56,7 @@ private:
     QPushButton *sendScreenButton;//Desktop sharing
     QImage receivedScreenshot;//Ss in full quality
     QImage receivedImage;//Image in full quality
+    QLabel *fullScreenLabel = nullptr;//Pointer to full size window for screenshots
     QTimer *screenshotTimer;//Screen is being send after this time
     bool sendingScreenshots = false;//Menage if you want to turn on/off screenshot sending
 };

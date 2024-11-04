@@ -79,7 +79,7 @@ ServerWindow::ServerWindow(QWidget *parent) : QWidget(parent) {
 
     screenshotTimer = new QTimer(this);
     connect(screenshotTimer,&QTimer::timeout, this, &ServerWindow::shareScreen);
-    screenshotTimer->setInterval(1000);
+    screenshotTimer->setInterval(100);
 
     //Desktop sharing
     QPushButton *sendScreenshotButton = new QPushButton("Send Screenshot", this);
@@ -192,6 +192,12 @@ void ServerWindow::readMessage() {
 
             //save img
             receivedScreenshot = screenshotImage; //keep to later use
+            if (fullScreenLabel && fullScreenLabel->isVisible()) {
+                QPixmap scaledPixmap = QPixmap::fromImage(receivedScreenshot.scaled(960, 960, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+                fullScreenLabel->setPixmap(scaledPixmap);
+                fullScreenLabel->update();
+                fullScreenLabel->repaint();
+            }
         }
     } else {
         QString serverMessage = QString::fromUtf8(data);
@@ -304,7 +310,7 @@ void ServerWindow::showFullScreenShare() {//Full size of screenshot got
     }
 
     //new qlabel to display
-    QLabel *fullScreenLabel = new QLabel;
+    fullScreenLabel = new QLabel;
     fullScreenLabel->setFixedSize(640, 640);//new window size
 
     //Scale screenshot
