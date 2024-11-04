@@ -22,6 +22,7 @@ class ServerWindow : public QWidget {
 
 public:
     explicit ServerWindow(QWidget *parent = nullptr);
+    QList<QTcpSocket*> connectedSockets;//list of connected clients
 
 private slots:
     void onStartButtonClicked();//Start button click
@@ -47,7 +48,6 @@ private:
     QPushButton *startButton;//Button to start the server
     QLineEdit *messageInput;//Input for messages to client
     QPushButton *sendButton;//Button to send message to client
-    QList<QTcpSocket*> connectedSockets;//All clients conected to server
     QPushButton *sendImageButton;//Button to send image from server to client
     QPushButton *deleteButton;//Clear chat button
     QPixmap background;//background

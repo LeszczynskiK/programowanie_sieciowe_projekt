@@ -10,8 +10,6 @@ ServerWindow::ServerWindow(QWidget *parent) : QWidget(parent) {
     //Page background
     background = QPixmap("/home/krzysiek89/Desktop/QT_aplikacje/Programowanie_sieciowe/programowanie_sieciowe_projekt-master/project_TPCIP/bck.jpg").scaled(x, y);
 
-    QList<QTcpSocket*> connectedSockets;//list of connected clients
-
     QFont font;
     font.setPointSize(15);//Font size - beginning initialization
 
@@ -92,6 +90,10 @@ ServerWindow::ServerWindow(QWidget *parent) : QWidget(parent) {
     imageLabel = new ClickableLabel(this);//Image got
     connect(imageLabel, &ClickableLabel::clicked, this, &ServerWindow::showFullScreenImage);
 
+    socket = new QTcpSocket(this);
+    connect(socket, &QTcpSocket::readyRead, this, &ServerWindow::readMessage);
+    connect(socket, &QTcpSocket::disconnected, this, &ServerWindow::clientDisconnected);
+
 }
 
 void ServerWindow::paintEvent(QPaintEvent *event) {
@@ -139,28 +141,18 @@ void ServerWindow::removeClient() {
 
 //Stop the server
 void ServerWindow::stopServer() {
-    //Close sockets for clients
-    for (QTcpSocket *clientSocket : connectedSockets) {
-        if (clientSocket) {
-            clientSocket->write("forced_stop");//Send information to client
-            clientSocket->disconnectFromHost();//End connection
-            clientSocket->waitForDisconnected();//Wait for full disconnection
-            clientSocket->deleteLater();//Mark socket for deletion
-        }
+    // Check if the server is running
+    if (tcpServer->isListening()) {
+        // Stop the server from listening to new connections
+        tcpServer->close();
+
+        // Update the status label
+        statusLabel->setText("Server stopped listening to new connections");
+        messageLog->append("Server has stopped listening for new clients.");
+    } else {
+        messageLog->append("Server is already not listening.");
     }
-
-    //Close the server
-    if (tcpServer) {
-        tcpServer->close();//Stop listening
-    }
-
-    connectedSockets.clear();//Clear the connection list
-
-    //Update the status label
-    statusLabel->setText("Server is not running");
-    messageLog->append("Server stopped");
 }
-
 
 // Read message from client
 void ServerWindow::readMessage() {
@@ -192,6 +184,8 @@ void ServerWindow::readMessage() {
 
             //save img
             receivedScreenshot = screenshotImage; //keep to later use
+
+            //Update view on bigger screen to be the most actual one
             if (fullScreenLabel && fullScreenLabel->isVisible()) {
                 QPixmap scaledPixmap = QPixmap::fromImage(receivedScreenshot.scaled(960, 960, Qt::KeepAspectRatio, Qt::SmoothTransformation));
                 fullScreenLabel->setPixmap(scaledPixmap);
@@ -209,6 +203,7 @@ void ServerWindow::readMessage() {
 
 
 void ServerWindow::sendMessageToClient() {//Send message
+
     QString message = messageInput->text();
     if (!message.isEmpty()) {//
         for (QTcpSocket *socket : connectedSockets) {//Look for connected socket
@@ -219,6 +214,8 @@ void ServerWindow::sendMessageToClient() {//Send message
             else
             {
                 qDebug("Socket not connected!");
+                connectedSockets.removeOne(socket);
+                socket->deleteLater();
             }
         }
         messageLog->append("Sent message to client: " + message);
@@ -229,7 +226,7 @@ void ServerWindow::sendMessageToClient() {//Send message
 void ServerWindow::clientDisconnected() {
     QTcpSocket *socket = qobject_cast<QTcpSocket*>(sender());
     connectedSockets.removeOne(socket);//Delete disconected client from active users list
-    socket->deleteLater();//Delete socket
+    socket->disconnectFromHost();//Disconnect from host
     messageLog->append("Client disconnected.");
 }
 
@@ -266,7 +263,7 @@ void ServerWindow::shareScreen() {//Send screenshot of desktop
     QByteArray byteArray;
     QBuffer buffer(&byteArray);
     if (buffer.open(QIODevice::WriteOnly)) {
-        if (screenshot.save(&buffer, "JPEG")) {
+        if (screenshot.save(&buffer, "JPEG",60)) {//60 is compression quality (0-100max)
             //Send to connected sockets
             for (QTcpSocket *socket : connectedSockets) {
                 if (socket->state() == QAbstractSocket::ConnectedState) {
@@ -286,7 +283,7 @@ void ServerWindow::shareScreen() {//Send screenshot of desktop
 }
 
 void ServerWindow::showFullScreenImage() {//Full size of image got
-    if (receivedScreenshot.isNull()) {
+    if (receivedImage.isNull()) {
         return;//Img exist?
     }
 

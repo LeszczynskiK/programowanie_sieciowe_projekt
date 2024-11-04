@@ -119,7 +119,6 @@ void ClientWindow::connectToServer() {
 void ClientWindow::sendMessage() {//Send message to server
     QString message = messageInput->text();
     if (!message.isEmpty()) {
-        qDebug() << "Sending message:" << message;//Log messages
         socket->write(message.toUtf8());
         socket->flush();
         messageInput->clear();//Clear field after sent
@@ -180,6 +179,7 @@ void ClientWindow::readMessage() {//Read all type of messages
             //save img
             receivedScreenshot = screenshotImage; //keep to later use
 
+            //Update view on bigger screen to be the most actual one
             if (fullScreenLabel && fullScreenLabel->isVisible()) {
                 QPixmap scaledPixmap = QPixmap::fromImage(receivedScreenshot.scaled(960, 960, Qt::KeepAspectRatio, Qt::SmoothTransformation));
                 fullScreenLabel->setPixmap(scaledPixmap);
@@ -205,7 +205,7 @@ void ClientWindow::sendImageToServer() {//Send img
     QByteArray byteArray;
     QBuffer buffer(&byteArray);
     buffer.open(QIODevice::WriteOnly);
-    image.save(&buffer, "JPEG"); // Save as jpeg
+    image.save(&buffer, "JPEG",60); // Save as jpeg60 is compression quality (0-100max)
 
     if (socket->state() == QAbstractSocket::ConnectedState) { // Check if the socket is connected
         socket->write(byteArray); // Send the image to the server
@@ -244,12 +244,12 @@ void ClientWindow::shareScreen() {//Send screenshot of desktop
 
 
 void ClientWindow::showFullScreenImage() {//Full size of image display in window
-    if (receivedScreenshot.isNull()) {
+    if (receivedImage.isNull()) {
         return;//Img exist?
     }
 
     //new qlabel to display
-    QLabel *fullScreenLabel = new QLabel;
+    fullScreenLabel = new QLabel;
     fullScreenLabel->setFixedSize(960, 960);//new window size
 
     //Scale screenshot
