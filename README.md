@@ -15,3 +15,5 @@ desktop sharng in 10FPS
 blocking connection from new clients   
 deleting connections to any of the client  
 
+Added new window to "login" to app - if password is wrong, using app is impossible (password with hashing)
+
