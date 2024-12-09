@@ -13,6 +13,7 @@
 #include <QTextEdit>
 #include <QPainter>
 #include <QPaintEvent>
+#include <QCryptographicHash>//For password hashing
 
 class start_window : public QWidget {
     Q_OBJECT
@@ -38,6 +39,8 @@ private:
     QString userLogin;//Store typped login
     QString userPassword;//Store typped password
     bool isLoggedIn = false;//If password and login are typped correctly
+
+    QString hashPassword(const QString &password);//function to hash a password
 };
 
 #endif // START_WINDOW_H

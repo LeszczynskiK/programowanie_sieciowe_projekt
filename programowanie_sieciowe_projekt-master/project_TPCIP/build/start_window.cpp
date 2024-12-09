@@ -60,11 +60,22 @@ void start_window::paintEvent(QPaintEvent *event) {
     QWidget::paintEvent(event);
 }
 
+QString start_window::hashPassword(const QString &password) {
+
+    //Hash the password using SHA-256
+    return QString(QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Sha256).toHex());
+}
+
 void start_window::handleLoginAttempt() {//check correctivity of typped data...
     userLogin = loginInput->text();
     userPassword = passwordInput->text();
 
-    if (userLogin == "admin" && userPassword == "123") {//password is 123, login is admin ->correct data to login
+
+    //predefined hashed password
+    QString hashedCorrectPassword = hashPassword("123");
+
+
+    if (userLogin == "admin" && hashPassword(userPassword) == hashedCorrectPassword) {//check validation of login and password
         isLoggedIn = true;//let login - bool variable
         statusLogin->setText("Login successful! Ready to proceed...");//new status of data
         turn_on_button->setVisible(true);
