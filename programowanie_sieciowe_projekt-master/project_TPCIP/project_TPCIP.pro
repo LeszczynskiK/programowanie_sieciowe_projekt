@@ -12,11 +12,13 @@ SOURCES += \
     build/clickablelabel.cpp \
     build/clientwindow.cpp \
     build/main.cpp \
-    build/serverwindow.cpp
+    build/serverwindow.cpp \
+    build/start_window.cpp
 HEADERS += \
     build/clickablelabel.h \
     build/clientwindow.h \
-    build/serverwindow.h
+    build/serverwindow.h \
+    build/start_window.h
 
 FORMS +=
 

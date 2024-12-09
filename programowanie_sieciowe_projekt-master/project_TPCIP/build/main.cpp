@@ -1,18 +1,14 @@
 #include <QApplication>
-#include "clientwindow.h"
-#include "serverwindow.h"
+#include "start_window.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-   //Server
-    ServerWindow serverWindow;
-    serverWindow.show();
 
-    //Client
-    ClientWindow clientWindow;
-    clientWindow.show();
+    //display authorisation window
+    start_window startWindow;
+    startWindow.show();
 
     return app.exec();
 }

@@ -56,7 +56,8 @@ private:
     QImage receivedScreenshot;//Ss in full quality
     QImage receivedImage;//Image in full quality
     QTimer *screenshotTimer;//Screen is being send after this time
-    QLabel *fullScreenLabel = nullptr;//Pointer to full size window for screenshots
+    QLabel *fullScreenImageLabel = nullptr;//full size image
+    QLabel *fullScreenScreenshotLabel = nullptr;//full size desktop picture
     bool sendingScreenshots = false;//Menage if you want to turn on/off screenshot sending
 };
 
