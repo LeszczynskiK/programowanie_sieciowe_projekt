@@ -35,6 +35,8 @@ private slots:
     void disconnectFromServer();//Disconnect from server connection
     void handleSocketError();//Information about connection problems
     void toggleScreenshotSending();//On/off screenshot sending method
+    void onFullScreenScreenshotLabelDestroyed();//after QLabel closing in full size screenshot displaying
+    void onFullImageLabelDestroyed();//after QLabel closing in full size image displaying
 
 private:
     void paintEvent(QPaintEvent *event);//background setter

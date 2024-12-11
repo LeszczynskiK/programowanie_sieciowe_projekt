@@ -152,6 +152,12 @@ void ClientWindow::readMessage() {//Read all type of messages
     }
 
     QByteArray data = socket->readAll();
+
+    if (data.isEmpty()) {
+        qDebug() << "No data received.";
+        return;
+    }
+
     QImage image;
 
     if (data == "forced_stop") {//if stop forced - change status label
@@ -202,9 +208,19 @@ void ClientWindow::sendImageToServer() {//Send img
     }
 
     QImage image(fileName); // Use chosen file
+    if (image.isNull()) {
+        qDebug() << "Invalid or empty image.";
+        return;
+    }
+
     QByteArray byteArray;
     QBuffer buffer(&byteArray);
     buffer.open(QIODevice::WriteOnly);
+    if (!image.save(&buffer, "JPEG", 60)) {
+        qDebug() << "Failed to save image to buffer.";
+        return;
+    }
+
     image.save(&buffer, "JPEG",60); // Save as jpeg60 is compression quality (0-100max)
 
     if (socket->state() == QAbstractSocket::ConnectedState) { // Check if the socket is connected
@@ -242,6 +258,13 @@ void ClientWindow::shareScreen() {//Send screenshot of desktop
     }
 }
 
+void ClientWindow::onFullScreenScreenshotLabelDestroyed() {
+    fullScreenScreenshotLabel = nullptr;
+}
+
+void ClientWindow::onFullImageLabelDestroyed() {
+    fullScreenImageLabel = nullptr;
+}
 
 void ClientWindow::showFullScreenImage() {//Full size of image display in window
     if (receivedImage.isNull()) {
@@ -250,7 +273,7 @@ void ClientWindow::showFullScreenImage() {//Full size of image display in window
 
     if (fullScreenImageLabel) {//if photo exist, close old one
         fullScreenImageLabel->close();
-        delete fullScreenImageLabel;
+        fullScreenImageLabel = nullptr;
     }
 
     //new qlabel to display
@@ -258,13 +281,16 @@ void ClientWindow::showFullScreenImage() {//Full size of image display in window
     fullScreenImageLabel->setFixedSize(960, 960);//new window size
 
     //Scale screenshot
-    QPixmap scaledPixmap = QPixmap::fromImage(receivedImage.scaled(960, 960, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    fullScreenImageLabel->setPixmap(scaledPixmap);
+    QPixmap scaledPixmapImage = QPixmap::fromImage(receivedImage.scaled(960, 960, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    fullScreenImageLabel->setPixmap(scaledPixmapImage);
 
     fullScreenImageLabel->setWindowTitle("Image Preview");
     fullScreenImageLabel->setAttribute(Qt::WA_DeleteOnClose);//close and delete from memory
     fullScreenImageLabel->setWindowFlags(Qt::Window);//Window type
     fullScreenImageLabel->show();
+
+    //set nullptr after QLabel closing
+    connect(fullScreenImageLabel, &QLabel::destroyed, this, &ClientWindow::onFullImageLabelDestroyed);
 }
 
 void ClientWindow::showFullScreenShare() {//Full size of screenshot display
@@ -274,7 +300,7 @@ void ClientWindow::showFullScreenShare() {//Full size of screenshot display
 
     if (fullScreenScreenshotLabel) {//if photo exist, close old one
         fullScreenScreenshotLabel->close();
-        delete fullScreenScreenshotLabel;
+        fullScreenScreenshotLabel=nullptr;
     }
 
     //create new QLabel
@@ -282,13 +308,16 @@ void ClientWindow::showFullScreenShare() {//Full size of screenshot display
     fullScreenScreenshotLabel->setFixedSize(960, 960);
 
     //Scale screenshot
-    QPixmap scaledPixmap = QPixmap::fromImage(receivedScreenshot.scaled(960, 960, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    fullScreenScreenshotLabel->setPixmap(scaledPixmap);
+    QPixmap scaledPixmapScreenshot = QPixmap::fromImage(receivedScreenshot.scaled(960, 960, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    fullScreenScreenshotLabel->setPixmap(scaledPixmapScreenshot);
 
     fullScreenScreenshotLabel->setWindowTitle("Screenshot Preview");
     fullScreenScreenshotLabel->setAttribute(Qt::WA_DeleteOnClose);//close and delete from memory
     fullScreenScreenshotLabel->setWindowFlags(Qt::Window);//Window type
     fullScreenScreenshotLabel->show();
+
+    //set nullptr after QLabel closing
+    connect(fullScreenScreenshotLabel, &QLabel::destroyed, this, &ClientWindow::onFullScreenScreenshotLabelDestroyed);
 }
 
 
@@ -315,6 +344,12 @@ void ClientWindow::handleSocketError() {
         break;
     case QAbstractSocket::NetworkError:
         statusLabel->setText("Network error. Check your connection.");
+        break;
+    case QAbstractSocket::SocketAddressNotAvailableError:
+        statusLabel->setText("Address not available.");
+        break;
+    case QAbstractSocket::UnsupportedSocketOperationError:
+        statusLabel->setText("Unsupported operation.");
         break;
     default:
         statusLabel->setText("An unknown error occurred: " + socket->errorString());

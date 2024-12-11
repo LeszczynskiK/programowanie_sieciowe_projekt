@@ -162,6 +162,12 @@ void ServerWindow::readMessage() {
     }
 
     QByteArray data = socket->readAll();
+
+    if (data.isEmpty()) {
+        qDebug() << "No data received.";
+        return;
+    }
+
     QImage image;
 
     //Img exist?
@@ -237,9 +243,19 @@ void ServerWindow::sendImageToClient() {
         return;//Finish if not taken
     }
     QImage image(fileName);//Use choosen file
+    if (image.isNull()) {
+        qDebug() << "Invalid or empty image.";
+        return;
+    }
+
     QByteArray byteArray;
     QBuffer buffer(&byteArray);
     buffer.open(QIODevice::WriteOnly);
+    if (!image.save(&buffer, "JPEG", 60)) {
+        qDebug() << "Failed to save image to buffer.";
+        return;
+    }
+
     image.save(&buffer, "JPEG");//Save as jpeg
 
     //Send image to all connected sockets
@@ -282,6 +298,14 @@ void ServerWindow::shareScreen() {//Send screenshot of desktop
     }
 }
 
+void ServerWindow::onFullScreenScreenshotLabelDestroyed() {
+    fullScreenScreenshotLabel = nullptr;
+}
+
+void ServerWindow::onFullImageLabelDestroyed() {
+    fullScreenImageLabel = nullptr;
+}
+
 void ServerWindow::showFullScreenImage() {//Full size of image got
     if (receivedImage.isNull()) {
         return;//Img exist?
@@ -289,21 +313,24 @@ void ServerWindow::showFullScreenImage() {//Full size of image got
 
     if (fullScreenImageLabel) {//if photo exist, close old one
         fullScreenImageLabel->close();
-        delete fullScreenImageLabel;
+        fullScreenImageLabel = nullptr;
     }
 
     //new qlabel to display
-    QLabel *fullScreenImageLabel = new QLabel;
+    fullScreenImageLabel = new QLabel;
     fullScreenImageLabel->setFixedSize(960, 960);//new window size
 
     //Scale screenshot
-    QPixmap scaledPixmap = QPixmap::fromImage(receivedImage.scaled(960,960, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    fullScreenImageLabel->setPixmap(scaledPixmap);
+    QPixmap scaledPixmapImage = QPixmap::fromImage(receivedImage.scaled(960,960, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    fullScreenImageLabel->setPixmap(scaledPixmapImage);
 
     fullScreenImageLabel->setWindowTitle("Image Preview");
     fullScreenImageLabel->setAttribute(Qt::WA_DeleteOnClose);//close and delete from memory
     fullScreenImageLabel->setWindowFlags(Qt::Window);//Window type
     fullScreenImageLabel->show();
+
+    //set nullptr after QLabel closing
+    connect(fullScreenImageLabel, &QLabel::destroyed, this, &ServerWindow::onFullImageLabelDestroyed);
 }
 
 void ServerWindow::showFullScreenShare() {//Full size of screenshot got
@@ -313,21 +340,24 @@ void ServerWindow::showFullScreenShare() {//Full size of screenshot got
 
     if (fullScreenScreenshotLabel) {//if photo exist, close old one
         fullScreenScreenshotLabel->close();
-        delete fullScreenScreenshotLabel;
+        fullScreenScreenshotLabel=nullptr;
     }
 
     //new qlabel to display
     fullScreenScreenshotLabel = new QLabel;
-    fullScreenScreenshotLabel->setFixedSize(640, 640);//new window size
+    fullScreenScreenshotLabel->setFixedSize(960, 960);//new window size
 
     //Scale screenshot
-    QPixmap scaledPixmap = QPixmap::fromImage(receivedScreenshot.scaled(640, 640, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    fullScreenScreenshotLabel->setPixmap(scaledPixmap);
+    QPixmap scaledPixmapScreenshot = QPixmap::fromImage(receivedScreenshot.scaled(960, 960, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    fullScreenScreenshotLabel->setPixmap(scaledPixmapScreenshot);
 
     fullScreenScreenshotLabel->setWindowTitle("Screenshot Preview");
     fullScreenScreenshotLabel->setAttribute(Qt::WA_DeleteOnClose);//close and delete from memory
     fullScreenScreenshotLabel->setWindowFlags(Qt::Window);//Window type
     fullScreenScreenshotLabel->show();
+
+    //set nullptr after QLabel closing
+    connect(fullScreenScreenshotLabel, &QLabel::destroyed, this, &ServerWindow::onFullScreenScreenshotLabelDestroyed);
 }
 
 void ServerWindow::toggleScreenshotSending() {
